@@ -1,4 +1,5 @@
 from django.db import models
+from employer.models import Company
 
 # Create your models here.
 # accounts/models.py
@@ -50,8 +51,11 @@ class JobSeeker(models.Model):
 
 class Employer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    company_name = models.CharField(max_length=100)
-    company_role = models.CharField(max_length=50, choices=[('admin', 'Admin'), ('manager', 'Manager')])
+    company = models.ForeignKey(Company, on_delete=models.CASCADE,null=True, blank=True)
+    company_role = models.CharField(max_length=50, choices=[('admin', 'Admin'), ('manager', 'Manager')], default='admin')
+    def can_manage_company(self):
+        return self.company_role == 'admin' 
+
 
 class Recruiter(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
