@@ -21,19 +21,22 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 class JobSeekerSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
     class Meta:
         model = JobSeeker
-        fields = ['phone_number', 'date_of_birth', 'profile_photo_url', 'bio', 'linkedin_url', 'portfolio_url', 'resume_url', 'current_job_title', 'job_preferences']
+        fields = [ 'user','phone_number', 'date_of_birth', 'profile_photo_url', 'bio', 'linkedin_url', 'portfolio_url', 'resume_url', 'current_job_title', 'job_preferences']
 
 class EmployerSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
     class Meta:
         model = Employer
-        fields = ['company_name', 'company_role']
+        fields = [ 'user','company_name', 'company_role']
 
 class RecruiterSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
     class Meta:
         model = Recruiter
-        fields = ['company', 'recruiter_level']
+        fields = ['id', 'user','company', 'recruiter_level']
 
 class SignupSerializer(serializers.Serializer):
     user = UserSerializer()
@@ -90,3 +93,17 @@ class OTPSerializer(serializers.ModelSerializer):
     class Meta:
         model = OTP
         fields = '__all__'
+
+
+# serializers.py
+
+from rest_framework import serializers
+from .models import User
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.IntegerField()
+    new_password = serializers.CharField(write_only=True)

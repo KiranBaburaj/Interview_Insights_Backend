@@ -3,7 +3,7 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import SignupSerializer
+from .serializers import EmployerSerializer, JobSeekerSerializer, RecruiterSerializer, SignupSerializer
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
@@ -208,3 +208,95 @@ def admin_dashboard(request):
     
     # Logic specific to admin dashboard
     return Response({'message': 'Welcome to admin dashboard!', 'user': request.user.email})
+
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import JobSeeker, Employer, Recruiter
+from .serializers import JobSeekerSerializer, EmployerSerializer, RecruiterSerializer
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_jobseekers(request):
+    jobseekers = JobSeeker.objects.all()
+    serializer = JobSeekerSerializer(jobseekers, many=True)
+    print("Job Seekers Data:", serializer.data)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_employers(request):
+    employers = Employer.objects.all()
+    serializer = EmployerSerializer(employers, many=True)
+    print("Employers Data:", serializer.data)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_recruiters(request):
+    recruiters = Recruiter.objects.all()
+    serializer = RecruiterSerializer(recruiters, many=True)
+    print("Recruiters Data:", serializer.data)
+    return Response(serializer.data)
+
+
+# views.py
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.mail import send_mail
+from .models import User, OTP
+from .serializers import PasswordResetSerializer, PasswordResetConfirmSerializer
+import random
+
+class RequestPasswordResetView(APIView):
+    authentication_classes = []  # Ensure no authentication is required
+    permission_classes = []
+
+    def post(self, request):
+        serializer = PasswordResetSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            try:
+                user = User.objects.get(email=email)
+                otp = random.randint(100000, 999999)
+                OTP.objects.create(email=email, otp=otp)
+
+                send_mail(
+                    'Your Password Reset OTP',
+                    f'Your OTP code is {otp}',
+                    'your-email@gmail.com',  # Replace with your email
+                    [email],  # Ensure email is a list of strings
+                    fail_silently=False,
+                )
+                return Response({"message": "OTP sent to your email"}, status=status.HTTP_200_OK)
+            except User.DoesNotExist:
+                return Response({"error": "User with this email does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PasswordResetConfirmView(APIView):
+    authentication_classes = []  # Ensure no authentication is required
+    permission_classes = []
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            otp = serializer.validated_data['otp']
+            new_password = serializer.validated_data['new_password']
+
+            try:
+                otp_record = OTP.objects.get(email=email, otp=otp)
+                user = User.objects.get(email=email)
+                user.set_password(new_password)
+                user.save()
+                otp_record.delete()
+                return Response({"message": "Password reset successful"}, status=status.HTTP_200_OK)
+            except OTP.DoesNotExist:
+                return Response({"error": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
+            except User.DoesNotExist:
+                return Response({"error": "User with this email does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
