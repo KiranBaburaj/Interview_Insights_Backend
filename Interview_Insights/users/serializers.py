@@ -30,7 +30,7 @@ class EmployerSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     class Meta:
         model = Employer
-        fields = [ 'user','company_name', 'company_role']
+        fields = [ 'user','company', 'company_role']
 
 class RecruiterSerializer(serializers.ModelSerializer):
     user = UserSerializer()
@@ -107,3 +107,5 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     email = serializers.EmailField()
     otp = serializers.IntegerField()
     new_password = serializers.CharField(write_only=True)
+
+

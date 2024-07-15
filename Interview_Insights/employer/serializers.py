@@ -11,3 +11,4 @@ class CompanySerializer(serializers.ModelSerializer):
             'founded_date', 'description', 'headquarters_location',
             'employee_count', 'tech_stack','gst_document','is_approved'
         ]
+
