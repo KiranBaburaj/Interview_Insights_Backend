@@ -117,6 +117,7 @@ class LoginView(APIView):
                 'user': {
                     'email': user.email,
                     'full_name': user.full_name,
+                    'id':user.id,
                 },
                 'role': 'jobseeker' if hasattr(user, 'jobseeker') else 'employer' if hasattr(user, 'employer') else 'recruiter' if hasattr(user, 'recruiter') else 'unknown'
             })
@@ -175,7 +176,7 @@ class VerifyOTPAndSignupView(APIView):
 
 # views.py
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated,IsAdminUser
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
@@ -218,7 +219,7 @@ from .models import JobSeeker, Employer, Recruiter
 from .serializers import JobSeekerSerializer, EmployerSerializer, RecruiterSerializer
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([])
 def list_jobseekers(request):
     jobseekers = JobSeeker.objects.all()
     serializer = JobSeekerSerializer(jobseekers, many=True)
@@ -226,7 +227,7 @@ def list_jobseekers(request):
     return Response(serializer.data)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([])
 def list_employers(request):
     employers = Employer.objects.all()
     serializer = EmployerSerializer(employers, many=True)
@@ -234,7 +235,7 @@ def list_employers(request):
     return Response(serializer.data)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([])
 def list_recruiters(request):
     recruiters = Recruiter.objects.all()
     serializer = RecruiterSerializer(recruiters, many=True)
