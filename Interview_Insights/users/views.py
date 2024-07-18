@@ -9,6 +9,62 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 # accounts/views.py
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.mail import send_mail
+from .models import User, OTP
+from .serializers import UserSerializer
+import random
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.mail import send_mail
+from .models import OTP
+import random
+
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
+from .serializers import CustomAuthTokenSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import User, JobSeeker, Employer, Recruiter
+from django.contrib.auth import authenticate
+# views.py
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
+from rest_framework.permissions import AllowAny  
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from .models import User, OTP
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import OTP
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from .models import OTP, User
+from .serializers import UserSerializer  # Import your User serializer
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -71,78 +127,46 @@ class SignupAndSendOTPView(APIView):
             user = serializer.save()
             user.set_password(password)
             user.save()
-            return Response({"message": "Signup successful and OTP sent"}, status=status.HTTP_201_CREATED)
+            return Response({"message": "OTP sent","user_id": user.id}, status=status.HTTP_201_CREATED)
         else:
             # If serializer validation fails, delete OTP and return error
             OTP.objects.filter(email=email).delete()
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
-from rest_framework.response import Response
-from .serializers import CustomAuthTokenSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .models import User, JobSeeker, Employer, Recruiter
-from django.contrib.auth import authenticate
-# views.py
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
-from rest_framework.permissions import AllowAny  
-
 class LoginView(APIView):
-    permission_classes = [AllowAny]  # Ensure this is set to allow any user
+    permission_classes = [AllowAny]  # Allow any user to access this view
 
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
-        user = authenticate(request, email=email, password=password)
+
+        # Check if user exists and email is verified via OTP
+        try:
+            user = User.objects.get(email=email)
+            if not user.email_verified:
+                return Response({'detail': 'Email not verified',"user_id": user.id}, status=status.HTTP_401_UNAUTHORIZED)
+
+            # Authenticate the user with email and password
+            user = authenticate(request, email=email, password=password)
+            
+            if user is not None:
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'accessToken': str(refresh.access_token),
+                    'refreshToken': str(refresh),
+                    'user': {
+                        'email': user.email,
+                        'full_name': user.full_name,
+                        'id': user.id,
+                    },
+                    'role': 'jobseeker' if hasattr(user, 'jobseeker') else 'employer' if hasattr(user, 'employer') else 'recruiter' if hasattr(user, 'recruiter') else 'unknown'
+                })
+            else:
+                return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         
-        if user is not None:
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'accessToken': str(refresh.access_token),
-                'refreshToken': str(refresh),
-                'user': {
-                    'email': user.email,
-                    'full_name': user.full_name,
-                    'id':user.id,
-                },
-                'role': 'jobseeker' if hasattr(user, 'jobseeker') else 'employer' if hasattr(user, 'employer') else 'recruiter' if hasattr(user, 'recruiter') else 'unknown'
-            })
-        else:
+        except User.DoesNotExist:
             return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.core.mail import send_mail
-from .models import User, OTP
-from .serializers import UserSerializer
-import random
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.core.mail import send_mail
-from .models import OTP
-import random
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import OTP
 
 class VerifyOTPAndSignupView(APIView):
     authentication_classes = []  # Ensure no authentication is required
@@ -152,29 +176,86 @@ class VerifyOTPAndSignupView(APIView):
         # Log the request data
         print("Verify OTP Request Data:", request.data)
 
-        # Extract OTP from the request
+        # Extract OTP and email from the request
         otp_code = request.data.get('otp')
 
+
         # Validate input data
-        if not otp_code:
-            return Response({"error": "OTP is required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not otp_code :
+            return Response({"error": "Both OTP and email are required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # Fetch the OTP record from the database
             otp_record = OTP.objects.get(otp=otp_code)
-            
-            # OTP is valid, delete it and return success response
-            email = otp_record.email  # Capture the email before deleting the record
+
+            # Check if OTP is valid (within a certain time frame)
+            if not otp_record.is_valid():
+                return Response({"error": "OTP Incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+            email = otp_record.email  
+            # OTP is valid, delete it
             otp_record.delete()
+
+            # Check if the user exists
+            user, created = User.objects.get_or_create(email=email)
+
+            # Optionally, update other fields in the User model here if needed
+            # Example: user.full_name = request.data.get('full_name')
+
+            # Mark the email as verified
+            user.email_verified = True
+            user.save()
+
+            # Serialize the user object if needed for response
+            serializer = UserSerializer(user)
+
             return Response({
                 "message": "OTP verified successfully",
-                "email": email
+                "user": serializer.data
             }, status=status.HTTP_200_OK)
-        
+
         except OTP.DoesNotExist:
             return Response({"error": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
-        
 
-# views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.mail import send_mail
+from django.utils import timezone
+import random
+
+class ResendOTPView(APIView):
+    authentication_classes = []  # No authentication required
+    permission_classes = []  # No permissions required
+    def post(self, request):
+        user_id = request.data.get('user_id')
+
+        try:
+            user = User.objects.get(id=user_id)
+            email = user.email
+
+            # Delete any existing OTPs for this email
+            OTP.objects.filter(email=email).delete()
+
+            # Generate and send a new OTP
+            otp = random.randint(100000, 999999)
+            OTP.objects.create(email=email, otp=otp)
+
+            try:
+                send_mail(
+                    'Your OTP Code',
+                    f'Your OTP code is {otp}',
+                    'your-email@gmail.com',  # Replace with your email
+                    [email],  # Ensure email is a list of strings
+                    fail_silently=False,
+                )
+                return Response({"detail": "OTP resent successfully."}, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated,IsAdminUser
 from rest_framework.response import Response
