@@ -1,92 +1,38 @@
-# accounts/views.py
-
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import EmployerSerializer, JobSeekerSerializer, RecruiterSerializer, SignupSerializer
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
-from rest_framework.response import Response
-# accounts/views.py
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 from django.core.mail import send_mail
-from .models import User, OTP
-from .serializers import UserSerializer
-import random
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.core.mail import send_mail
-from .models import OTP
-import random
-
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
-from rest_framework.response import Response
-from .serializers import CustomAuthTokenSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .models import User, JobSeeker, Employer, Recruiter
 from django.contrib.auth import authenticate
-# views.py
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
-from rest_framework.permissions import AllowAny  
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import AllowAny
-
-from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User, OTP
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import OTP
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 from django.shortcuts import get_object_or_404
-from .models import OTP, User
-from .serializers import UserSerializer  # Import your User serializer
-
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .serializers import SignupSerializer
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
-from rest_framework.response import Response
 import random
 
+from .models import User, OTP, JobSeeker, Employer, Recruiter
+from .serializers import (
+    UserSerializer, 
+    SignupSerializer, 
+    JobSeekerSerializer, 
+    EmployerSerializer, 
+    RecruiterSerializer, 
+    PasswordResetSerializer, 
+    PasswordResetConfirmSerializer,
+    CustomAuthTokenSerializer
+)
+
+# Signup and Send OTP
 class SignupAndSendOTPView(APIView):
-    authentication_classes = []  # Ensure no authentication is required
-    permission_classes = []  # Ensure no permissions are required
+    authentication_classes = []
+    permission_classes = []
 
     def post(self, request):
-        # Log the request data
         print("Request Data:", request.data)
-
-        # Extract data from the request
         user_data = request.data.get('user')
         role = request.data.get('role')
 
-        # Validate input data
         if not user_data or not role:
             return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -97,23 +43,20 @@ class SignupAndSendOTPView(APIView):
         if not email or not password or not full_name:
             return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Generate OTP
         otp = random.randint(100000, 999999)
         OTP.objects.create(email=email, otp=otp)
 
         try:
-            # Send OTP via email
             send_mail(
                 'Your OTP Code',
                 f'Your OTP code is {otp}',
-                'your-email@gmail.com',  # Replace with your email
-                [email],  # Ensure email is a list of strings
+                'your-email@gmail.com',
+                [email],
                 fail_silently=False,
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # Save user data if OTP sending succeeds
         data = {
             "user": {
                 "email": email,
@@ -127,29 +70,36 @@ class SignupAndSendOTPView(APIView):
             user = serializer.save()
             user.set_password(password)
             user.save()
-            return Response({"message": "OTP sent","user_id": user.id}, status=status.HTTP_201_CREATED)
+            return Response({"message": "OTP sent", "user_id": user.id}, status=status.HTTP_201_CREATED)
         else:
-            # If serializer validation fails, delete OTP and return error
             OTP.objects.filter(email=email).delete()
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+# Login
 class LoginView(APIView):
-    permission_classes = [AllowAny]  # Allow any user to access this view
+    permission_classes = [AllowAny]
 
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
 
-        # Check if user exists and email is verified via OTP
+        # Debug: Print email and password received
+        print(f"Login attempt with email: {email} and password: {password}")
+
         try:
             user = User.objects.get(email=email)
-            if not user.email_verified:
-                return Response({'detail': 'Email not verified',"user_id": user.id}, status=status.HTTP_401_UNAUTHORIZED)
 
-            # Authenticate the user with email and password
+            # Debug: Print email verification status
+            print(f"User found: {user.email}, Email Verified: {user.email_verified}")
+
+            if not user.email_verified:
+                return Response({'detail': 'Email not verified', "user_id": user.id}, status=status.HTTP_401_UNAUTHORIZED)
+
             user = authenticate(request, email=email, password=password)
-            
+
+            # Debug: Print authentication result
+            print(f"Authentication attempt for user {email}: {'Success' if user else 'Failure'}")
+
             if user is not None:
                 refresh = RefreshToken.for_user(user)
                 return Response({
@@ -164,50 +114,39 @@ class LoginView(APIView):
                 })
             else:
                 return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
         except User.DoesNotExist:
+            # Debug: Print message when user does not exist
+            print(f"No user found with email: {email}")
             return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
+# Verify OTP and Signup
 class VerifyOTPAndSignupView(APIView):
-    authentication_classes = []  # Ensure no authentication is required
+    authentication_classes = []
     permission_classes = []
 
     def post(self, request):
-        # Log the request data
         print("Verify OTP Request Data:", request.data)
 
-        # Extract OTP and email from the request
         otp_code = request.data.get('otp')
 
-
-        # Validate input data
-        if not otp_code :
-            return Response({"error": "Both OTP and email are required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not otp_code:
+            return Response({"error": "OTP is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Fetch the OTP record from the database
             otp_record = OTP.objects.get(otp=otp_code)
 
-            # Check if OTP is valid (within a certain time frame)
             if not otp_record.is_valid():
                 return Response({"error": "OTP Incorrect"}, status=status.HTTP_400_BAD_REQUEST)
-            email = otp_record.email  
-            # OTP is valid, delete it
+            email = otp_record.email
             otp_record.delete()
 
-            # Check if the user exists
             user, created = User.objects.get_or_create(email=email)
-
-            # Optionally, update other fields in the User model here if needed
-            # Example: user.full_name = request.data.get('full_name')
-
-            # Mark the email as verified
             user.email_verified = True
+            user.is_active=True
             user.save()
 
-            # Serialize the user object if needed for response
             serializer = UserSerializer(user)
-
             return Response({
                 "message": "OTP verified successfully",
                 "user": serializer.data
@@ -216,16 +155,12 @@ class VerifyOTPAndSignupView(APIView):
         except OTP.DoesNotExist:
             return Response({"error": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.core.mail import send_mail
-from django.utils import timezone
-import random
 
+# Resend OTP
 class ResendOTPView(APIView):
-    authentication_classes = []  # No authentication required
-    permission_classes = []  # No permissions required
+    authentication_classes = []
+    permission_classes = []
+
     def post(self, request):
         user_id = request.data.get('user_id')
 
@@ -233,10 +168,8 @@ class ResendOTPView(APIView):
             user = User.objects.get(id=user_id)
             email = user.email
 
-            # Delete any existing OTPs for this email
             OTP.objects.filter(email=email).delete()
 
-            # Generate and send a new OTP
             otp = random.randint(100000, 999999)
             OTP.objects.create(email=email, otp=otp)
 
@@ -244,8 +177,8 @@ class ResendOTPView(APIView):
                 send_mail(
                     'Your OTP Code',
                     f'Your OTP code is {otp}',
-                    'your-email@gmail.com',  # Replace with your email
-                    [email],  # Ensure email is a list of strings
+                    'your-email@gmail.com',
+                    [email],
                     fail_silently=False,
                 )
                 return Response({"detail": "OTP resent successfully."}, status=status.HTTP_200_OK)
@@ -256,12 +189,7 @@ class ResendOTPView(APIView):
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated,IsAdminUser
-from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
-
+# Admin Login and Dashboard
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def admin_login(request):
@@ -288,17 +216,10 @@ def admin_dashboard(request):
     if not request.user.is_superuser:
         return Response({'detail': 'You do not have permission to access this resource.'}, status=403)
     
-    # Logic specific to admin dashboard
     return Response({'message': 'Welcome to admin dashboard!', 'user': request.user.email})
 
 
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from .models import JobSeeker, Employer, Recruiter
-from .serializers import JobSeekerSerializer, EmployerSerializer, RecruiterSerializer
-
+# List Job Seekers, Employers, and Recruiters
 @api_view(['GET'])
 @permission_classes([])
 def list_jobseekers(request):
@@ -324,18 +245,9 @@ def list_recruiters(request):
     return Response(serializer.data)
 
 
-# views.py
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.core.mail import send_mail
-from .models import User, OTP
-from .serializers import PasswordResetSerializer, PasswordResetConfirmSerializer
-import random
-
+# Password Reset
 class RequestPasswordResetView(APIView):
-    authentication_classes = []  # Ensure no authentication is required
+    authentication_classes = []
     permission_classes = []
 
     def post(self, request):
@@ -350,8 +262,8 @@ class RequestPasswordResetView(APIView):
                 send_mail(
                     'Your Password Reset OTP',
                     f'Your OTP code is {otp}',
-                    'your-email@gmail.com',  # Replace with your email
-                    [email],  # Ensure email is a list of strings
+                    'your-email@gmail.com',
+                    [email],
                     fail_silently=False,
                 )
                 return Response({"message": "OTP sent to your email"}, status=status.HTTP_200_OK)
@@ -360,7 +272,7 @@ class RequestPasswordResetView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PasswordResetConfirmView(APIView):
-    authentication_classes = []  # Ensure no authentication is required
+    authentication_classes = []
     permission_classes = []
 
     def post(self, request):
@@ -369,6 +281,7 @@ class PasswordResetConfirmView(APIView):
             email = serializer.validated_data['email']
             otp = serializer.validated_data['otp']
             new_password = serializer.validated_data['new_password']
+            print(f"Resetting password  {new_password}")
 
             try:
                 otp_record = OTP.objects.get(email=email, otp=otp)

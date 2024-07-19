@@ -32,7 +32,7 @@ class Job(models.Model):
         return self.title
 
 class JobCategoryRelation(models.Model):
-    job = models.ForeignKey(Job, related_name='categories', on_delete=models.CASCADE)
+    job = models.ForeignKey(Job, related_name='jobcategoryrelation_set', on_delete=models.CASCADE)
     category = models.ForeignKey(JobCategory, related_name='jobs', on_delete=models.CASCADE)
 
     class Meta:

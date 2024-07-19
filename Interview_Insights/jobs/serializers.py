@@ -6,35 +6,41 @@ class JobCategorySerializer(serializers.ModelSerializer):
         model = JobCategory
         fields = ['id', 'name']
 
+class JobCategoryRelationSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        slug_field='name',
+        queryset=JobCategory.objects.all()
+    )
+
+    class Meta:
+        model = JobCategoryRelation
+        fields = ['category']
+
 class JobSerializer(serializers.ModelSerializer):
-    categories = serializers.PrimaryKeyRelatedField(queryset=JobCategory.objects.all(), many=True)
+    categories = JobCategoryRelationSerializer(source='jobcategoryrelation_set', many=True)
 
     class Meta:
         model = Job
-        fields = [
-            'id', 'employer', 'title', 'description', 'responsibilities', 
-            'qualifications', 'nice_to_have', 'employment_type', 'location', 
-            'salary_min', 'salary_max', 'is_remote', 'application_deadline', 
-            'posted_at', 'status', 'views_count', 'applications_count', 
-            'experience_level', 'job_function', 'categories'
-        ]
+        fields = ['id', 'title', 'description', 'responsibilities', 'qualifications', 'nice_to_have', 'employment_type', 
+                  'location', 'salary_min', 'salary_max', 'is_remote', 'application_deadline', 'posted_at', 'status', 
+                  'views_count', 'applications_count', 'experience_level', 'job_function', 'categories']
 
     def create(self, validated_data):
-        categories_data = validated_data.pop('categories')
+        categories_data = validated_data.pop('jobcategoryrelation_set')
         job = Job.objects.create(**validated_data)
-        job.categories.set(categories_data)
+        for category_data in categories_data:
+            category_name = category_data['category']
+            category, created = JobCategory.objects.get_or_create(name=category_name)
+            JobCategoryRelation.objects.create(job=job, category=category)
         return job
 
     def update(self, instance, validated_data):
-        categories_data = validated_data.pop('categories', None)
+        categories_data = validated_data.pop('jobcategoryrelation_set')
         instance = super().update(instance, validated_data)
-
-        if categories_data is not None:
-            instance.categories.set(categories_data)
         
+        instance.jobcategoryrelation_set.all().delete()
+        for category_data in categories_data:
+            category_name = category_data['category']
+            category, created = JobCategory.objects.get_or_create(name=category_name)
+            JobCategoryRelation.objects.create(job=instance, category=category)
         return instance
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['categories'] = JobCategorySerializer(instance.categories.all(), many=True).data
-        return representation
