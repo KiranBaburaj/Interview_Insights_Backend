@@ -56,4 +56,6 @@ class CompanyViewSet(viewsets.ModelViewSet):
         company.is_approved = not company.is_approved
         company.save()
         status = 'approved' if company.is_approved else 'disapproved'
-        return Response({'status': f'company {status}'})
+        serializer = CompanySerializer(company)
+        return Response(serializer.data)
+        
