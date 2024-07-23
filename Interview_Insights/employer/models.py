@@ -26,7 +26,7 @@ class Company(models.Model):
 
 class CompanyLocation(models.Model):
     company = models.ForeignKey(Company, related_name='locations', on_delete=models.CASCADE)
-    location = models.CharField(max_length=100)
+    #location = models.CharField(max_length=100)
 
     def __str__(self):
         return f"{self.company.name} - {self.location}"
