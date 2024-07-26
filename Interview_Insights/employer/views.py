@@ -43,6 +43,9 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         if not self.request.user.is_staff:
+            employer=self.request.user.employer
             serializer.save(employer=self.request.user.employer)
+            employer.company_details_submitted = True
+            employer.save()
         else:
             serializer.save()

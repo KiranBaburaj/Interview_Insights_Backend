@@ -121,6 +121,7 @@ class LoginView(APIView):
                         'email': user.email,
                         'full_name': user.full_name,
                         'id': user.id,
+                        
                     },
                     'role': role
                 })

@@ -153,7 +153,7 @@ REST_FRAMEWORK = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'interview_insights',
+        'NAME': 'inter',
         'USER': 'postgres',
         'PASSWORD': '916916',  # Replace with your actual password
         'HOST': 'localhost',

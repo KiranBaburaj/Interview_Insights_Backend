@@ -53,6 +53,7 @@ class JobSeeker(models.Model):
 class Employer(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    company_details_submitted = models.BooleanField(default=False)  # New field
     company_role = models.CharField(max_length=50, choices=[('admin', 'Admin'), ('manager', 'Manager')], default='admin')
     def can_manage_company(self):
         return self.company_role == 'admin' 
