@@ -74,8 +74,15 @@ class SignupAndSendOTPView(APIView):
         else:
             OTP.objects.filter(email=email).delete()
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from .models import User
 
-# Login
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -102,6 +109,11 @@ class LoginView(APIView):
 
             if user is not None:
                 refresh = RefreshToken.for_user(user)
+                role = 'jobseeker' if hasattr(user, 'jobseeker') else 'employer' if hasattr(user, 'employer') else 'recruiter' if hasattr(user, 'recruiter') else 'admin' if user.is_staff else 'unknown'
+
+                # Debug: Print role
+                print(f"User role: {role}")
+
                 return Response({
                     'accessToken': str(refresh.access_token),
                     'refreshToken': str(refresh),
@@ -110,7 +122,7 @@ class LoginView(APIView):
                         'full_name': user.full_name,
                         'id': user.id,
                     },
-                    'role': 'jobseeker' if hasattr(user, 'jobseeker') else 'employer' if hasattr(user, 'employer') else 'recruiter' if hasattr(user, 'recruiter') else 'unknown'
+                    'role': role
                 })
             else:
                 return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)

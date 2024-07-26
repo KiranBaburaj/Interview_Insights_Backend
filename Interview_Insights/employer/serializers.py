@@ -9,6 +9,6 @@ class CompanySerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'logo_url', 'website_url', 'industry', 'company_size',
             'founded_date', 'description', 'headquarters_location',
-            'employee_count', 'tech_stack','gst_document','is_approved'
+            'employee_count', 'tech_stack','gst_document','is_approved','employer'
         ]
 

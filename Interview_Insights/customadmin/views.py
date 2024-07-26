@@ -8,11 +8,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
 from users.models import Company
-from .serializers import CompanySerializer
 from rest_framework import viewsets
 from users.models import User, JobSeeker, Employer, Recruiter, Company
-from .serializers import UserSerializer, JobSeekerSerializer, EmployerSerializer, RecruiterSerializer, CompanySerializer
-
+from .serializers import UserSerializer, JobSeekerSerializer, EmployerSerializer, RecruiterSerializer
+from employer.serializers import CompanySerializer
 class UserViewSet(viewsets.ModelViewSet):
     authentication_classes = []
     permission_classes = []

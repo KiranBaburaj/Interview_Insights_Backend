@@ -53,8 +53,6 @@ class JobSeeker(models.Model):
 class Employer(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    
-    company = models.ForeignKey(Company, on_delete=models.CASCADE,null=True, blank=True)
     company_role = models.CharField(max_length=50, choices=[('admin', 'Admin'), ('manager', 'Manager')], default='admin')
     def can_manage_company(self):
         return self.company_role == 'admin' 
@@ -62,15 +60,8 @@ class Employer(models.Model):
 
 class Recruiter(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    company = models.ForeignKey('Company', on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
     recruiter_level = models.CharField(max_length=50, choices=[('junior', 'Junior'), ('senior', 'Senior')])
-
-class Company(models.Model):
-    is_approved = models.BooleanField(default=False)
-    name = models.CharField(max_length=100)
-    description = models.TextField()
-    #location = models.CharField(max_length=100)
-# accounts/models.py
 
 from django.db import models
 from django.utils import timezone
