@@ -1,17 +1,40 @@
+# employer/views.py
+
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated,AllowAny
+from rest_framework.permissions import IsAuthenticated
 from .models import Job, JobCategory
 from .serializers import JobSerializer, JobCategorySerializer
+from .permissions import IsEmployerOwnerOrAdmin
 
 class JobViewSet(viewsets.ModelViewSet):
-    queryset = Job.objects.all()
     serializer_class = JobSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, IsEmployerOwnerOrAdmin]
+
+    # Explicitly define the queryset attribute
+    queryset = Job.objects.none()
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Job.objects.all()
+        return Job.objects.filter(employer=self.request.user.employer)
 
     def perform_create(self, serializer):
-        serializer.save(employer=self.request.user.employer)
+        if not self.request.user.is_staff:
+            serializer.save(employer=self.request.user.employer)
+        else:
+            serializer.save()
 
 class JobCategoryViewSet(viewsets.ModelViewSet):
-    queryset = JobCategory.objects.all()
     serializer_class = JobCategorySerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, IsEmployerOwnerOrAdmin]
+
+    # Explicitly define the queryset attribute
+    queryset = JobCategory.objects.none()
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return JobCategory.objects.all()
+        return JobCategory.objects.all()
+
+    def perform_create(self, serializer):
+        serializer.save()

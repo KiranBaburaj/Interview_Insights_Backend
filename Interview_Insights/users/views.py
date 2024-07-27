@@ -82,6 +82,14 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from .models import User
+from employer.models import Company
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
@@ -111,8 +119,19 @@ class LoginView(APIView):
                 refresh = RefreshToken.for_user(user)
                 role = 'jobseeker' if hasattr(user, 'jobseeker') else 'employer' if hasattr(user, 'employer') else 'recruiter' if hasattr(user, 'recruiter') else 'admin' if user.is_staff else 'unknown'
 
-                # Debug: Print role
+                # Check if the employer has submitted company details
+                company_details_submitted = False
+                if role == 'employer':
+                    try:
+                        company = Company.objects.get(employer=user.employer)
+                        print(f"User role: {company}")
+                        company_details_submitted = company.is_approved
+                    except Company.DoesNotExist:
+                        company_details_submitted = False
+
+                # Debug: Print role and company details submission status
                 print(f"User role: {role}")
+                print(f"Company details submitted: {company_details_submitted}")
 
                 return Response({
                     'accessToken': str(refresh.access_token),
@@ -121,12 +140,14 @@ class LoginView(APIView):
                         'email': user.email,
                         'full_name': user.full_name,
                         'id': user.id,
-                        
                     },
-                    'role': role
+                    'role': role,
+                    'companyDetailsSubmitted': company_details_submitted
                 })
             else:
                 return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        except User.DoesNotExist:
+            return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
         except User.DoesNotExist:
             # Debug: Print message when user does not exist
