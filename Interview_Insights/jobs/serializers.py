@@ -44,3 +44,14 @@ class JobSerializer(serializers.ModelSerializer):
             category, created = JobCategory.objects.get_or_create(name=category_name)
             JobCategoryRelation.objects.create(job=instance, category=category)
         return instance
+
+
+# serializers.py
+from rest_framework import serializers
+from .models import JobApplication
+
+class JobApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobApplication
+        fields = ['id', 'job', 'resume_url', 'cover_letter', 'status', 'applied_at', 'updated_at', 'stage']
+        read_only_fields = ['job_seeker', 'status', 'applied_at', 'updated_at']

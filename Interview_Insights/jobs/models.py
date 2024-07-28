@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from users.models import Employer  # Assuming Employer model exists in employers app
+from users.models import Employer, JobSeeker  # Assuming Employer model exists in employers app
 
 class JobCategory(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -40,3 +40,27 @@ class JobCategoryRelation(models.Model):
 
     def __str__(self):
         return f"{self.job.title} - {self.category.name}"
+
+
+class ApplicationStage(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+class JobApplication(models.Model):
+    job = models.ForeignKey(Job, related_name='applications', on_delete=models.CASCADE)
+    job_seeker = models.ForeignKey(JobSeeker, related_name='applications', on_delete=models.CASCADE)
+    resume_url = models.URLField(max_length=255, blank=True, null=True)
+    cover_letter = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=20, default='applied')  # 'applied', 'reviewed', 'interviewed', 'offered', 'hired', 'rejected'
+    applied_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    stage = models.ForeignKey(ApplicationStage, on_delete=models.CASCADE, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('job', 'job_seeker') 
+
+    def __str__(self):
+        return f"{self.job_seeker.user.email} - {self.job.title}"

@@ -16,6 +16,8 @@ class JobViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_staff:
             return Job.objects.all()
+        if not hasattr(self.request.user, 'employer'):
+            return Job.objects.all()
         return Job.objects.filter(employer=self.request.user.employer)
 
     def perform_create(self, serializer):
@@ -38,3 +40,21 @@ class JobCategoryViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save()
+
+
+# views.py
+
+from rest_framework import viewsets, permissions
+from rest_framework.permissions import IsAuthenticated
+from .models import JobApplication
+from users.models import JobSeeker
+from .serializers import JobApplicationSerializer
+
+class JobApplicationViewSet(viewsets.ModelViewSet):
+    queryset = JobApplication.objects.all()
+    serializer_class = JobApplicationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        job_seeker=self.request.user.jobseeker
+        serializer.save(job_seeker=job_seeker)
