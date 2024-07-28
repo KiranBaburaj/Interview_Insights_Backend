@@ -55,3 +55,6 @@ class JobApplicationSerializer(serializers.ModelSerializer):
         model = JobApplication
         fields = ['id', 'job', 'resume_url', 'cover_letter', 'status', 'applied_at', 'updated_at', 'stage']
         read_only_fields = ['job_seeker', 'status', 'applied_at', 'updated_at']
+
+class JobApplicationStatusSerializer(serializers.Serializer):
+    hasApplied = serializers.BooleanField()

@@ -1,10 +1,13 @@
 # employer/views.py
-
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .models import Job, JobCategory
 from .serializers import JobSerializer, JobCategorySerializer
 from .permissions import IsEmployerOwnerOrAdmin
+from rest_framework.permissions import AllowAny, IsAuthenticated
+
 
 class JobViewSet(viewsets.ModelViewSet):
     serializer_class = JobSerializer
@@ -58,3 +61,12 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         job_seeker=self.request.user.jobseeker
         serializer.save(job_seeker=job_seeker)
+
+
+class CheckApplicationStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, job_id):
+        job_seeker=self.request.user.jobseeker
+        has_applied = JobApplication.objects.filter(job_seeker=job_seeker, job_id=job_id).exists()
+        return Response({'hasApplied': has_applied})
