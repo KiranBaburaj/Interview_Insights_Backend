@@ -49,11 +49,14 @@ class JobSerializer(serializers.ModelSerializer):
 # serializers.py
 from rest_framework import serializers
 from .models import JobApplication
+from users.serializers import JobSeekerSerializer
 
 class JobApplicationSerializer(serializers.ModelSerializer):
+    job_seeker = JobSeekerSerializer(read_only=True)
+
     class Meta:
         model = JobApplication
-        fields = ['id', 'job', 'resume_url', 'cover_letter', 'status', 'applied_at', 'updated_at', 'stage']
+        fields = ['id', 'job', 'job_seeker', 'resume_url', 'cover_letter', 'status', 'applied_at', 'updated_at', 'stage']
         read_only_fields = ['job_seeker', 'status', 'applied_at', 'updated_at']
 
 class JobApplicationStatusSerializer(serializers.Serializer):

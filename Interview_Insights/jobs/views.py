@@ -8,6 +8,10 @@ from .permissions import IsEmployerOwnerOrAdmin
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import generics
+from .models import JobApplication
+from .serializers import JobApplicationSerializer
+from rest_framework.permissions import IsAuthenticated
 class JobViewSet(viewsets.ModelViewSet):
     serializer_class = JobSerializer
     queryset = Job.objects.none()
@@ -88,3 +92,13 @@ def job_applicants(request, job_id):
         return Response(serializer.data)
     except Job.DoesNotExist:
         return Response({'error': 'Job not found'}, status=404)
+
+
+
+class JobApplicationList(generics.ListAPIView):
+    serializer_class = JobApplicationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return JobApplication.objects.filter(job_seeker__user=user)
