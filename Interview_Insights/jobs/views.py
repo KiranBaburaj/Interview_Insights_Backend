@@ -11,10 +11,17 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from .models import JobApplication
 from .serializers import JobApplicationSerializer
+from .filters import JobFilter,JobApplicationFilter
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import filters
 class JobViewSet(viewsets.ModelViewSet):
     serializer_class = JobSerializer
     queryset = Job.objects.none()
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_class = JobFilter
+    search_fields = ['title', 'description', 'location']  # Add fields you want to search
+
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             self.permission_classes = [AllowAny]
@@ -24,12 +31,15 @@ class JobViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.action in ['list', 'retrieve']:
-            return Job.objects.all()
-        if self.request.user.is_staff:
-            return Job.objects.all()
-        if not hasattr(self.request.user, 'employer'):
-            return Job.objects.none()
-        return Job.objects.filter(employer=self.request.user.employer)
+            queryset = Job.objects.all()
+        elif self.request.user.is_staff:
+            queryset = Job.objects.all()
+        elif not hasattr(self.request.user, 'employer'):
+            queryset = Job.objects.none()
+        else:
+            queryset = Job.objects.filter(employer=self.request.user.employer)
+        
+        return queryset
 
     def perform_create(self, serializer):
         if not self.request.user.is_staff:
@@ -98,6 +108,8 @@ def job_applicants(request, job_id):
 class JobApplicationList(generics.ListAPIView):
     serializer_class = JobApplicationSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = JobApplicationFilter  # Add the filterset class
 
     def get_queryset(self):
         user = self.request.user

@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles','rest_framework',   'rest_framework_simplejwt.token_blacklist',
     'users','employer','jobs','rest_framework_simplejwt','corsheaders',
-    'allauth',
+    'allauth','django_filters',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google','customadmin','jobseeker',
