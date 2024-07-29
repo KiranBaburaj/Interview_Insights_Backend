@@ -39,6 +39,15 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'uwantshim@gmail.com'
 EMAIL_HOST_PASSWORD = 'ware ozpf tviv gafq'
 
+import os
+
+# Base directory
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Media settings
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 INSTALLED_APPS = [
     'django.contrib.admin', 'rest_framework.authtoken',
