@@ -42,7 +42,7 @@ class JobSeeker(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
-    profile_photo_url = models.URLField(max_length=255, null=True, blank=True)
+    profile_photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
     bio = models.TextField(null=True, blank=True)
     linkedin_url = models.URLField(max_length=255, null=True, blank=True)
     portfolio_url = models.URLField(max_length=255, null=True, blank=True)

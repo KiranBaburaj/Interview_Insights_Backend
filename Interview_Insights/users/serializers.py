@@ -24,7 +24,7 @@ class JobSeekerSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     class Meta:
         model = JobSeeker
-        fields = [ 'user','phone_number', 'date_of_birth', 'profile_photo_url', 'bio', 'linkedin_url', 'portfolio_url', 'resume_url', 'current_job_title', 'job_preferences']
+        fields = [ 'user','phone_number', 'date_of_birth',  'bio', 'linkedin_url', 'portfolio_url', 'resume_url', 'current_job_title', 'job_preferences']
 
 class EmployerSerializer(serializers.ModelSerializer):
     user = UserSerializer()

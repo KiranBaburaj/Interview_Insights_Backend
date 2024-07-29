@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.google','customadmin',
+    'allauth.socialaccount.providers.google','customadmin','jobseeker',
 ]
 
 SITE_ID = 1
