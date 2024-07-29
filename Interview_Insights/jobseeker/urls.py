@@ -1,12 +1,8 @@
-# urls.py
-
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import JobSeekerViewSet
-
-router = DefaultRouter()
-router.register(r'profile', JobSeekerViewSet, basename='profile')
+from django.urls import path
+from .views import JobSeekerRetrieveUpdateAPIView, JobSeekerListCreateAPIView, JobSeekerDetailAPIView
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('profile/', JobSeekerRetrieveUpdateAPIView.as_view(), name='jobseeker-profile'),
+    path('jobseekers/', JobSeekerListCreateAPIView.as_view(), name='jobseeker-list'),
+    path('jobseekers/<int:pk>/', JobSeekerDetailAPIView.as_view(), name='jobseeker-detail'),
 ]
