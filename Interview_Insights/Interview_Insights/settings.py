@@ -57,11 +57,22 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles','rest_framework',   'rest_framework_simplejwt.token_blacklist',
     'users','employer','jobs','rest_framework_simplejwt','corsheaders',
-    'allauth','django_filters',
-    'allauth.account',
+    'allauth','django_filters','channels',
+    'allauth.account','chat',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google','customadmin','jobseeker',
 ]
+
+
+
+ASGI_APPLICATION = 'Interview_Insights.asgi.application'
+
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer'
+    }
+}
 
 SITE_ID = 1
 
