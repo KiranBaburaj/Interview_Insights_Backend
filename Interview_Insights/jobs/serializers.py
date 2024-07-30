@@ -31,7 +31,7 @@ class JobSerializer(serializers.ModelSerializer):
         model = Job
         fields = ['id', 'title', 'description', 'responsibilities', 'qualifications', 'nice_to_have', 'employment_type', 
                   'location', 'salary_min', 'salary_max', 'is_remote', 'application_deadline', 'posted_at', 'status', 
-                  'views_count', 'applications_count', 'experience_level', 'job_function', 'categories','company']
+                  'views_count', 'applications_count', 'experience_level', 'job_function', 'categories','company','employer']
 
     def get_company(self, job):
         # Navigate through the Employer to get the Company details
