@@ -48,11 +48,10 @@ class ApplicationStage(models.Model):
 
     def __str__(self):
         return self.name
-
 class JobApplication(models.Model):
     job = models.ForeignKey(Job, related_name='applications', on_delete=models.CASCADE)
     job_seeker = models.ForeignKey(JobSeeker, related_name='applications', on_delete=models.CASCADE)
-    resume_url = models.URLField(max_length=255, blank=True, null=True)
+    resume = models.FileField(upload_to='resumes/', blank=True, null=True)  # PDF resumes will be uploaded here
     cover_letter = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=20, default='applied')  # 'applied', 'reviewed', 'interviewed', 'offered', 'hired', 'rejected'
     applied_at = models.DateTimeField(default=timezone.now)

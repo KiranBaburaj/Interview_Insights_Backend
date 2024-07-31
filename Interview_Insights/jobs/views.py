@@ -68,15 +68,22 @@ from rest_framework.permissions import IsAuthenticated
 from .models import JobApplication
 from users.models import JobSeeker
 from .serializers import JobApplicationSerializer
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
+from .models import JobApplication
+from .serializers import JobApplicationSerializer
 
 class JobApplicationViewSet(viewsets.ModelViewSet):
     queryset = JobApplication.objects.all()
     serializer_class = JobApplicationSerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)  # Handle multipart form data
 
     def perform_create(self, serializer):
         job_seeker = self.request.user.jobseeker
         serializer.save(job_seeker=job_seeker)
+
 
 class CheckApplicationStatusView(APIView):
     permission_classes = [IsAuthenticated]
