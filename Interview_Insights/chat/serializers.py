@@ -30,13 +30,4 @@ class ChatRoomSerializer(serializers.ModelSerializer):
         if last_message:
             return MessageSerializer(last_message).data
         return None
-    def create(self, validated_data):
-        print("validated_data",validated_data)
-        # Ensure that jobseeker and employer are properly set
-        jobseeker = validated_data.get('jobseeker')
-        employer = validated_data.get('employer')
-
-        if jobseeker is None or employer is None:
-            raise serializers.ValidationError("Both jobseeker and employer must be provided.")
-
-        return super().create(validated_data)
+   

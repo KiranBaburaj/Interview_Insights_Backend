@@ -59,9 +59,10 @@ INSTALLED_APPS = [
     'users','employer','jobs','rest_framework_simplejwt','corsheaders',
     'allauth','django_filters','channels',
     'allauth.account','chat',
-    'allauth.socialaccount',
+   
     'allauth.socialaccount.providers.google','customadmin','jobseeker',
 ]
+
 
 
 

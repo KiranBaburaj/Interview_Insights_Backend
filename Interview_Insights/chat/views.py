@@ -4,6 +4,7 @@ from users.models import User
 from rest_framework import viewsets, permissions
 from .models import ChatRoom, Message
 from .serializers import ChatRoomSerializer, MessageSerializer
+from rest_framework import viewsets, permissions, serializers
 
 class ChatRoomViewSet(viewsets.ModelViewSet):
     serializer_class = ChatRoomSerializer
@@ -14,9 +15,9 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         return ChatRoom.objects.filter(jobseeker=user) | ChatRoom.objects.filter(employer=user)
     
     def perform_create(self, serializer):
-        print (serializer)
-        jobseeker = self.request.data.get('jobseekerId')
-        employer = self.request.data.get('employerId')
+        print (self.request.data)
+        jobseeker = self.request.data.get('jobseeker_id')
+        employer = self.request.data.get('employer_id')
 
 
         if not jobseeker or not employer:
