@@ -33,10 +33,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
+        full_name = text_data_json['full_name']
 
         logger.debug(f"Received message: {message}")
 
         user_id = text_data_json.get('user_id')
+        
         
 
         await self.save_message(user_id, message)
@@ -46,19 +48,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
             {
                 'type': 'chat_message',
                 'message': message,
-                'user_id': user_id
+                'user_id': user_id,
+                'full_name':full_name
             }
         )
 
     async def chat_message(self, event):
         message = event['message']
         user_id = event['user_id']
+        full_name = event['full_name']
 
         logger.debug(f"Sending message: {message} from user: {user_id}")
 
         await self.send(text_data=json.dumps({
             'message': message,
-            'user_id': user_id
+            'user_id': user_id,
+            'full_name':full_name,
+
         }))
 
     @database_sync_to_async
