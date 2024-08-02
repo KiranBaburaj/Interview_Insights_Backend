@@ -62,7 +62,7 @@ INSTALLED_APPS = [
    
     'allauth.socialaccount.providers.google','customadmin','jobseeker',
 ]
-
+"""
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -90,7 +90,7 @@ LOGGING = {
         },
     },
 }
-
+"""
 
 
 ASGI_APPLICATION = 'Interview_Insights.asgi.application'
