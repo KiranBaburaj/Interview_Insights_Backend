@@ -330,12 +330,82 @@ class PasswordResetConfirmView(APIView):
                 return Response({"error": "User with this email does not exist"}, status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-from dj_rest_auth.registration.views import SocialLoginView # type: ignore
+# views.py
+import requests
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from allauth.socialaccount.providers.oauth2.client import OAuth2Error
+from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.models import SocialAccount
+from django.contrib.auth.models import User
+
+from users.models import User
 
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
-    callback_url = "http://localhost:3000"  # Your frontend URL
-    client_class = OAuth2Client
+
+    def post(self, request, *args, **kwargs):
+        token = request.data.get('access_token')
+        if not token:
+            return Response({'error': 'No access token provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Validate the token
+            user_info = self.validate_google_token(token)
+            if not user_info:
+                return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Fetch user info from Google
+            
+            # Check if user already exists
+            email = user_info['email']
+            try:
+                user = User.objects.get(email=email)
+                print(user)
+            except User.DoesNotExist:
+                # Create new user
+                user = User.objects.create(
+                    full_name=email,
+                    email=email,
+                    is_active=True,  # or another default value
+                    email_verified= True, ) # Assuming email is verified through Google
+                print("user created",user)
+
+            # Perform login or signup
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+
+            return Response({'access_token': access_token}, status=status.HTTP_200_OK)
+        except OAuth2Error as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def validate_google_token(self, token):
+        try:
+            response = requests.get(
+                'https://www.googleapis.com/oauth2/v3/tokeninfo',
+                params={'id_token': token}
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            print("Token validation failed:", e)
+            return None
+
+    def get_user_info(self, token):
+        try:
+            response = requests.get(
+                'https://www.googleapis.com/oauth2/v3/userinfo',
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            print("Failed to fetch user info:", e)
+            return None
+
+    def create_token(self, user):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(user)
+        return str(refresh.access_token)
