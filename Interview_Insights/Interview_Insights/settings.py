@@ -49,17 +49,34 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
+# settings.py
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # or whatever origin your frontend uses
+]
+
+
+
+
 INSTALLED_APPS = [
     'django.contrib.admin', 'rest_framework.authtoken',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles','rest_framework',   'rest_framework_simplejwt.token_blacklist',
-    'users','employer','jobs','rest_framework_simplejwt','corsheaders',
-    'allauth','django_filters','channels',
-    'allauth.account','chat',
-   
+    'django.contrib.staticfiles',
+    'rest_framework',  
+      'rest_framework_simplejwt.token_blacklist',
+    'users','employer','jobs',
+    'rest_framework_simplejwt',
+    'corsheaders',
+    'allauth','django_filters',
+    'channels',
+    'chat',
+    'dj_rest_auth',
+    'django.contrib.sites',
+    'allauth.account',
+    'allauth.socialaccount',
+    'dj_rest_auth.registration',
     'allauth.socialaccount.providers.google','customadmin','jobseeker',
 ]
 """
@@ -91,7 +108,9 @@ LOGGING = {
     },
 }
 """
-
+REST_USE_JWT = True
+JWT_AUTH_COOKIE = 'my-app-auth'
+JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token'
 
 ASGI_APPLICATION = 'Interview_Insights.asgi.application'
 
@@ -119,26 +138,23 @@ SOCIAL_AUTH_URL_NAMESPACE = 'social'
 
 AUTH_USER_MODEL = 'users.User'
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '1092983879872-00pt0f70pqm65ihangv097s0dh0ag8tt.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
-
 
 SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
+    "google": {
+        "APP": {
+            "client_id": "250807523474-f1r1ch6t4t0lgi42ar72ce3svngss5d5.apps.googleusercontent.com",  # replace me
+            "secret": "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",        # replace me
+            "key": "",                               # leave empty
         },
-        'OAUTH_PKCE_ENABLED': True,
-        'APP': {
-            'client_id': '1092983879872-00pt0f70pqm65ihangv097s0dh0ag8tt.apps.googleusercontent.com',
-            'secret': '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',
-            'key': ''
-        }
-    }
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+        "VERIFIED_EMAIL": True,
+    },
 }
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None

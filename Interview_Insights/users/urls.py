@@ -1,10 +1,12 @@
 
-from django.urls import path
-from .views import LoginView, ResendOTPView, SignupAndSendOTPView,VerifyOTPAndSignupView, list_employers, list_jobseekers, list_recruiters
+from django.urls import include, path
+from .views import GoogleLogin, LoginView, ResendOTPView, SignupAndSendOTPView,VerifyOTPAndSignupView, list_employers, list_jobseekers, list_recruiters
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import RequestPasswordResetView, PasswordResetConfirmView
 
 from .views import admin_login, admin_dashboard
+from allauth.socialaccount.views import signup
+
 
 urlpatterns = [
    
@@ -27,5 +29,8 @@ urlpatterns = [
      path('request-password-reset/', RequestPasswordResetView.as_view(), name='request-password-reset'),
     path('password-reset-confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
 
-
+ path("google/", GoogleLogin.as_view(), name="google_login"),
+path('dj-rest-auth/', include('dj_rest_auth.urls')),
+    path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
+    path('dj-rest-auth/google/', GoogleLogin.as_view(), name='google_login')
 ]

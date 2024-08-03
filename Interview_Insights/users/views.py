@@ -329,3 +329,13 @@ class PasswordResetConfirmView(APIView):
             except User.DoesNotExist:
                 return Response({"error": "User with this email does not exist"}, status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+from dj_rest_auth.registration.views import SocialLoginView # type: ignore
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+    callback_url = "http://localhost:3000"  # Your frontend URL
+    client_class = OAuth2Client
