@@ -14,6 +14,7 @@ urlpatterns = [
         path('jobseek/', include('jobseeker.urls')),
         path('', include('chat.urls')),
         path('', include('customadmin.urls')),
+        path('', include('Interview.urls')),
     ])),
 
 ]
