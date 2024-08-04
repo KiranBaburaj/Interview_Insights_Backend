@@ -364,9 +364,23 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 import requests
 from .models import User, JobSeeker, Employer, Recruiter
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Error
+from dj_rest_auth.registration.views import SocialLoginView
+from rest_framework.permissions import AllowAny
+from allauth.socialaccount.models import SocialAccount
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+import requests
+from .models import User, JobSeeker, Employer, Recruiter, Company
+
 
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         token = request.data.get('access_token')
@@ -402,29 +416,37 @@ class GoogleLogin(SocialLoginView):
                 else:
                     return Response({'error': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                # Handle case where user already exists
-                if not getattr(user, role, None):
-                    if role == 'jobseeker':
-                        JobSeeker.objects.create(user=user)
-                    elif role == 'employer':
-                        Employer.objects.create(user=user)
-                    elif role == 'recruiter':
-                        Recruiter.objects.create(user=user)
-                    else:
-                        return Response({'error': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
-
+                pass
+               
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
 
+            # Check if the employer has submitted company details
+            company_details_submitted = False
+            company_info = None
+            if role == 'employer':
+                try:
+                    company = Company.objects.get(employer=user.employer)
+                    company_details_submitted = company.is_approved
+                    company_info = {
+                        'name': company.name,
+                        'is_approved': company.is_approved,
+                        'details': company.details,
+                    }
+                except Company.DoesNotExist:
+                    company_details_submitted = False
+
             return Response({
-                'access_token': access_token,
+                'accessToken': access_token,
+                'refreshToken': str(refresh),
                 'user': {
                     'email': user.email,
                     'full_name': user.full_name,
                     'id': user.id,
                 },
                 'role': 'jobseeker' if hasattr(user, 'jobseeker') else 'employer' if hasattr(user, 'employer') else 'recruiter' if hasattr(user, 'recruiter') else 'admin' if user.is_staff else 'unknown',
-                
+                'company_details_submitted': company_details_submitted,
+                'company_info': company_info,
             }, status=status.HTTP_200_OK)
 
         except OAuth2Error as e:
