@@ -342,42 +342,91 @@ from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.models import User
 
 from users.models import User
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Error
+from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.models import SocialAccount
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+import requests
+from .models import User, JobSeeker, Employer, Recruiter
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Error
+from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.models import SocialAccount
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+import requests
+from .models import User, JobSeeker, Employer, Recruiter
 
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
 
     def post(self, request, *args, **kwargs):
         token = request.data.get('access_token')
+        role = request.data.get('role')
+
         if not token:
             return Response({'error': 'No access token provided'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Validate the token
             user_info = self.validate_google_token(token)
             if not user_info:
                 return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Fetch user info from Google
-            
-            # Check if user already exists
             email = user_info['email']
-            try:
-                user = User.objects.get(email=email)
-                print(user)
-            except User.DoesNotExist:
-                # Create new user
-                user = User.objects.create(
-                    full_name=email,
-                    email=email,
-                    is_active=True,  # or another default value
-                    email_verified= True, ) # Assuming email is verified through Google
-                print("user created",user)
+            user, created = User.objects.get_or_create(email=email)
+            
+            if created:
+                if not role:
+                    return Response({'error': 'Role is required for new users'}, status=status.HTTP_400_BAD_REQUEST)
+                
+                user.full_name = user_info.get('name', email)
+                user.is_active = True  # or another default value
+                user.email_verified = True  # Assuming email is verified through Google
+                user.save()
 
-            # Perform login or signup
+                # Create associated role model instance
+                if role == 'jobseeker':
+                    JobSeeker.objects.create(user=user)
+                elif role == 'employer':
+                    Employer.objects.create(user=user)
+                elif role == 'recruiter':
+                    Recruiter.objects.create(user=user)
+                else:
+                    return Response({'error': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                # Handle case where user already exists
+                if not getattr(user, role, None):
+                    if role == 'jobseeker':
+                        JobSeeker.objects.create(user=user)
+                    elif role == 'employer':
+                        Employer.objects.create(user=user)
+                    elif role == 'recruiter':
+                        Recruiter.objects.create(user=user)
+                    else:
+                        return Response({'error': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
+
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
 
-            return Response({'access_token': access_token}, status=status.HTTP_200_OK)
+            return Response({
+                'access_token': access_token,
+                'user': {
+                    'email': user.email,
+                    'full_name': user.full_name,
+                    'id': user.id,
+                },
+                'role': 'jobseeker' if hasattr(user, 'jobseeker') else 'employer' if hasattr(user, 'employer') else 'recruiter' if hasattr(user, 'recruiter') else 'admin' if user.is_staff else 'unknown',
+                
+            }, status=status.HTTP_200_OK)
+
         except OAuth2Error as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
