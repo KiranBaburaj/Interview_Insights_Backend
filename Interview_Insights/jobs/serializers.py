@@ -82,6 +82,16 @@ class JobApplicationSerializer(serializers.ModelSerializer):
         employer = job.employer if job else None
         company = employer.company if employer else None
         return CompanySerializer(company).data if company else None
+    
+    def update(self, instance, validated_data):
+        instance.status = validated_data.get('status', instance.status)
+        instance.save()
+        return instance
+    
+from rest_framework import serializers
+from .models import JobApplication
 
-class JobApplicationStatusSerializer(serializers.Serializer):
-    hasApplied = serializers.BooleanField()
+class JobApplicationStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobApplication
+        fields = ['status']

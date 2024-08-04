@@ -3,7 +3,7 @@
 from rest_framework import viewsets, permissions
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import Job, JobCategory
-from .serializers import JobSerializer, JobCategorySerializer
+from .serializers import JobApplicationStatusSerializer, JobSerializer, JobCategorySerializer
 from .permissions import IsEmployerOwnerOrAdmin
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -61,8 +61,10 @@ class JobCategoryViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save()
 
-# views.py
 
+# views.py
+from rest_framework import viewsets, permissions, generics, status
+from rest_framework.decorators import action, api_view
 from rest_framework import viewsets, permissions
 from rest_framework.permissions import IsAuthenticated
 from .models import JobApplication
@@ -84,6 +86,14 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         job_seeker = self.request.user.jobseeker
         serializer.save(job_seeker=job_seeker)
 
+# views.py
+
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import JobApplication
+from .serializers import JobApplicationStatusSerializer
+from .permissions import IsEmployerOwnerOrAdmin
 
 class CheckApplicationStatusView(APIView):
     permission_classes = [IsAuthenticated]
@@ -92,6 +102,35 @@ class CheckApplicationStatusView(APIView):
         job_seeker = self.request.user.jobseeker
         has_applied = JobApplication.objects.filter(job_seeker=job_seeker, job_id=job_id).exists()
         return Response({'hasApplied': has_applied})
+# views.py
+
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from .models import JobApplication
+from .serializers import JobApplicationStatusSerializer
+from .permissions import IsEmployerOwnerOrAdmin
+
+class UpdateApplicationStatusView(APIView):
+    permission_classes = [IsAuthenticated, IsEmployerOwnerOrAdmin]
+
+    def patch(self, request, job_id):
+        try:
+            application = JobApplication.objects.get(id=job_id)
+        except JobApplication.DoesNotExist:
+            return Response({'error': 'Application not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if the user is the employer of the job or an admin
+        if not request.user.is_staff and application.job.employer.user != request.user:
+            return Response({'error': 'You do not have permission to update this application.'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        serializer = JobApplicationStatusSerializer(application, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Add the necessary imports at the beginning of your views.py file

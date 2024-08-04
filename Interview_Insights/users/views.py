@@ -332,50 +332,16 @@ class PasswordResetConfirmView(APIView):
 
 # views.py
 import requests
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Error
-from dj_rest_auth.registration.views import SocialLoginView
-from allauth.socialaccount.models import SocialAccount
-from django.contrib.auth.models import User
-
-from users.models import User
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Error
-from dj_rest_auth.registration.views import SocialLoginView
-from allauth.socialaccount.models import SocialAccount
-from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import RefreshToken
 import requests
-from .models import User, JobSeeker, Employer, Recruiter
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Error
-from dj_rest_auth.registration.views import SocialLoginView
-from allauth.socialaccount.models import SocialAccount
-from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import RefreshToken
-import requests
-from .models import User, JobSeeker, Employer, Recruiter
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Error
-from dj_rest_auth.registration.views import SocialLoginView
 from rest_framework.permissions import AllowAny
-from allauth.socialaccount.models import SocialAccount
-from django.contrib.auth import authenticate
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Error
+from dj_rest_auth.registration.views import SocialLoginView
 from rest_framework_simplejwt.tokens import RefreshToken
-import requests
-from .models import User, JobSeeker, Employer, Recruiter, Company
+from django.contrib.auth import authenticate
 
 
 class GoogleLogin(SocialLoginView):

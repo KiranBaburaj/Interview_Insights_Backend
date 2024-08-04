@@ -49,6 +49,14 @@ class ApplicationStage(models.Model):
     def __str__(self):
         return self.name
 class JobApplication(models.Model):
+    STATUS_CHOICES = [
+        ('applied', 'Applied'),
+        ('reviewed', 'Reviewed'),
+        ('interviewed', 'Interviewed'),
+        ('offered', 'Offered'),
+        ('hired', 'Hired'),
+        ('rejected', 'Rejected'),
+    ]
     job = models.ForeignKey(Job, related_name='applications', on_delete=models.CASCADE)
     job_seeker = models.ForeignKey(JobSeeker, related_name='applications', on_delete=models.CASCADE)
     resume = models.FileField(upload_to='resumes/', blank=True, null=True)  # PDF resumes will be uploaded here
