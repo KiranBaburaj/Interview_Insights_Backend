@@ -20,3 +20,17 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender.username} at {self.timestamp}"
+    
+
+class Notification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('CHAT', 'Chat'),
+        ('APPLICATION_STATUS', 'Application Status'),
+        # Add more types as needed
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='notifications', on_delete=models.CASCADE)
+    message = models.CharField(max_length=255)
+    notification_type = models.CharField(max_length=50, choices=NOTIFICATION_TYPES)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)

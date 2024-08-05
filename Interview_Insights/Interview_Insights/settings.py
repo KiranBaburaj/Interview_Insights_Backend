@@ -79,7 +79,7 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
     'allauth.socialaccount.providers.google','customadmin','jobseeker','Interview'
 ]
-"""
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -107,7 +107,7 @@ LOGGING = {
         },
     },
 }
-"""
+
 REST_USE_JWT = True
 JWT_AUTH_COOKIE = 'my-app-auth'
 JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token'

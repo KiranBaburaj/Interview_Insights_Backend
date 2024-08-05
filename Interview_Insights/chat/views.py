@@ -41,3 +41,29 @@ class MessageViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         chat_room = ChatRoom.objects.get(id=self.kwargs['chat_room_pk'])
         serializer.save(sender=self.request.user, chat_room=chat_room)
+
+# views.py
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from .models import Notification
+from .serializers import NotificationSerializer
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Notification.objects.filter(user=user)
+
+    @action(detail=True, methods=['post'])
+    def mark_as_read(self, request, pk=None):
+        try:
+            notification = self.get_object()
+            notification.is_read = True
+            notification.save()
+            serializer = self.get_serializer(notification)
+            return Response(serializer.data)
+        except Notification.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
