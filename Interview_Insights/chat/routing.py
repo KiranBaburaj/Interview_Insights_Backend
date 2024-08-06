@@ -5,5 +5,5 @@ from . import consumers
 
 websocket_urlpatterns = [
     re_path(r'ws/chat/(?P<room_id>\w+)/$', consumers.ChatConsumer.as_asgi()),
-    re_path(r'ws/notifications/$', consumers.NotificationConsumer.as_asgi()),  # Add this line for notifications
+     re_path(r'ws/notifications/(?P<user_id>\d+)/$', consumers.NotificationConsumer.as_asgi()),  # Include user_id in the URL
 ]

@@ -37,7 +37,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.save_message(user_id, message)
 
         # Create a notification for the chat message
-        notification = await self.create_notifications(user_id, f"New message from {full_name}")
+       
 
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -46,7 +46,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'message': message,
                 'user_id': user_id,
                 'full_name': full_name,
-                'notification_id': notification.id  # Include the notification ID
+                
             }
         )
 
@@ -54,13 +54,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = event['message']
         user_id = event['user_id']
         full_name = event['full_name']
-        notification_id = event['notification_id']
+        
 
         await self.send(text_data=json.dumps({
             'message': message,
             'user_id': user_id,
             'full_name': full_name,
-            'notification_id': notification_id  # Include the notification ID
+            
         }))
 
     @database_sync_to_async
@@ -69,44 +69,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
         chat_room = ChatRoom.objects.get(id=self.room_id)
         Message.objects.create(chat_room=chat_room, sender=user, content=message)
 
-    @database_sync_to_async
-    def create_notifications(self, sender_id, message):
-        sender = User.objects.get(id=sender_id)
-        chat_room = ChatRoom.objects.get(id=self.room_id)
-        recipients = [chat_room.jobseeker, chat_room.employer]
-        notification = None
-        
-        for user in recipients:
-            if user.id != int(sender_id):
-                notification = Notification.objects.create(
-                    user=user,
-                    message=message,
-                    notification_type='CHAT'
-                )
-        return notification
-
 # consumers.py
-
-# consumers.py
-import json
-from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.db import database_sync_to_async
-from .models import Notification
 import json
 import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from .models import Notification
+from django.contrib.auth import get_user_model
+from .models import Notification, ChatRoom
 
+User = get_user_model()
 logger = logging.getLogger('notifications')
-
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.user = self.scope['user']
-        self.room_name = f"user_{self.user.id}"
-        self.room_group_name = f'notifications_{self.user.id}'
-
-        logger.info(f"Connecting to room: {self.room_group_name} for user: {self.user.id}")
+        self.user_id = self.scope['url_route']['kwargs']['user_id']
+        self.room_group_name = f'notifications_{self.user_id}'
+        logger.info(f"WebSocket name user: {self.room_group_name}")
 
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -114,53 +91,72 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         )
 
         await self.accept()
-        logger.info(f"WebSocket connection accepted for user: {self.user.id}")
+        logger.info(f"WebSocket connection accepted for user: {self.user_id}")
 
     async def disconnect(self, close_code):
-        logger.info(f"Disconnecting from room: {self.room_group_name} for user: {self.user.id}")
-
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
-
-        logger.info(f"WebSocket connection closed for user: {self.user.id}")
+        logger.info(f"WebSocket connection closed for user: {self.user_id}")
 
     async def receive(self, text_data):
-        logger.info(f"Received data: {text_data} from user: {self.user.id}")
+        logger.info(f"Received data: {text_data}")
         data = json.loads(text_data)
-        notification_id = data.get('notification_id')
+        user_id = data.get('user_id')
+        message = data.get('message')
+        room_id = data.get('room_id')
 
-        if notification_id:
-            try:
-                notification = await database_sync_to_async(Notification.objects.get)(id=notification_id)
-                if notification:
-                    notification.is_read = True
-                    notification.save()
-                    logger.info(f"Notification ID {notification_id} marked as read for user: {self.user.id}")
+        # Create a notification for the message
+        notification_recipients = await self.create_notification(user_id, message, room_id)
 
-                    await self.channel_layer.group_send(
-                        self.room_group_name,
-                        {
-                            'type': 'notification_update',
-                            'notification': {
-                                'id': notification.id,
-                                'message': notification.message,
-                                'notification_type': notification.notification_type,
-                                'is_read': notification.is_read,
-                                'created_at': notification.created_at.isoformat()
-                            }
-                        }
-                    )
-            except Notification.DoesNotExist:
-                logger.warning(f"Notification ID {notification_id} does not exist for user: {self.user.id}")
-            except Exception as e:
-                logger.error(f"Error while processing notification ID {notification_id} for user: {self.user.id} - {e}")
+        for recipient_id, notification in notification_recipients:
+            await self.channel_layer.group_send(
+                f'notifications_{recipient_id}',
+                {
+                    'type': 'notification_message',
+                    'message': message,
+                    'user_id': user_id,
+                    'room_id': room_id,
+                    'notification': {
+                        'id': notification.id,
+                        'message': notification.message,
+                        'user_id': recipient_id,
+                        'notification_type': notification.notification_type,
+                        'timestamp': notification.created_at.isoformat(),
+                    }
+                }
+            )
+            logger.info(f"notifications_{recipient_id}")
 
-    async def notification_update(self, event):
+    async def notification_message(self, event):
+        message = event['message']
+        user_id = event['user_id']
+        room_id = event['room_id']
         notification = event['notification']
-        logger.debug(f"Sending notification update: {notification} to user: {self.user.id}")
+        logger.info(f"message : {message}")
 
         await self.send(text_data=json.dumps({
+            'message': message,
+            'user_id': user_id,
+            'room_id': room_id,
             'notification': notification
         }))
+
+    @database_sync_to_async
+    def create_notification(self, user_id, message, room_id):
+        sender = User.objects.get(id=user_id)
+        chat_room = ChatRoom.objects.get(id=room_id)
+        recipients = [chat_room.jobseeker, chat_room.employer]
+
+        notification_recipients = []
+        for user in recipients:
+            if user.id != int(user_id):
+                notification = Notification.objects.create(
+                    user=user,
+                    message=message,
+                    notification_type='CHAT'
+                )
+                notification_recipients.append((user.id, notification))
+        
+        return notification_recipients
