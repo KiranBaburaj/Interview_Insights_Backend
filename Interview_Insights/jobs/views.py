@@ -2,8 +2,8 @@
 
 from rest_framework import viewsets, permissions
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .models import Job, JobCategory
-from .serializers import JobApplicationStatusSerializer, JobSerializer, JobCategorySerializer
+from .models import Job, JobCategory, SavedJob
+from .serializers import JobApplicationStatusSerializer, JobSerializer, JobCategorySerializer, SavedJobSerializer
 from .permissions import IsEmployerOwnerOrAdmin
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -209,3 +209,21 @@ class JobApplicationList(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return JobApplication.objects.filter(job_seeker__user=user)
+    
+
+class SavedJobListView(generics.ListCreateAPIView):
+    serializer_class = SavedJobSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return SavedJob.objects.filter(job_seeker=self.request.user.jobseeker)
+
+    def perform_create(self, serializer):
+        serializer.save(job_seeker=self.request.user.jobseeker)
+
+class SavedJobDetailView(generics.RetrieveDestroyAPIView):
+    serializer_class = SavedJobSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return SavedJob.objects.filter(job_seeker=self.request.user.jobseeker)

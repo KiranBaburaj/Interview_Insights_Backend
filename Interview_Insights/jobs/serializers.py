@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Job, JobCategory, JobCategoryRelation
+from .models import Job, JobCategory, JobCategoryRelation, SavedJob
 from employer.models import Company
 
 
@@ -95,3 +95,9 @@ class JobApplicationStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobApplication
         fields = ['status']
+
+class SavedJobSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavedJob
+        fields = ['id', 'job_seeker', 'job', 'saved_at']
+        read_only_fields = ['job_seeker', 'saved_at']

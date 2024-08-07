@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import CheckApplicationStatusView, JobApplicationViewSet, JobViewSet, JobCategoryViewSet
+from .views import CheckApplicationStatusView, JobApplicationViewSet, JobViewSet, JobCategoryViewSet, SavedJobListView
 from .views import  UpdateApplicationStatusView
 from .views import job_applicants,JobApplicationList
 
@@ -12,6 +12,7 @@ router.register(r'applications', JobApplicationViewSet, basename='application')
 
 urlpatterns = [
     path('', include(router.urls)),
+     path('saved-jobs/', SavedJobListView.as_view(), name='saved-job-list'),
      path('jobs/<int:job_id>/applicants/', job_applicants, name='job-applicants'),
       path('myapplications/', JobApplicationList.as_view(), name='job-application-list'),
        path('jobs/<int:job_id>/check-application-status/', CheckApplicationStatusView.as_view(), name='check-application-status'),

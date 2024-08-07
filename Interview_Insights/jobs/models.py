@@ -71,3 +71,16 @@ class JobApplication(models.Model):
 
     def __str__(self):
         return f"{self.job_seeker.user.email} - {self.job.title}"
+
+
+
+class SavedJob(models.Model):
+    job_seeker = models.ForeignKey(JobSeeker, related_name='saved_jobs', on_delete=models.CASCADE)
+    job = models.ForeignKey(Job, related_name='saved_by', on_delete=models.CASCADE)
+    saved_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ('job_seeker', 'job')
+
+    def __str__(self):
+        return f"{self.job_seeker.user.email} saved {self.job.title}"
