@@ -121,6 +121,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                     'notification': {
                         'id': notification.id,
                         'message': notification.message,
+                        'is_read':notification.is_read,
                         'user_id': recipient_id,
                         'notification_type': notification.notification_type,
                         'timestamp': notification.created_at.isoformat(),
@@ -133,6 +134,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         message = event['message']
         user_id = event['user_id']
         room_id = event['room_id']
+
         notification = event['notification']
         logger.info(f"message : {message}")
 
@@ -140,6 +142,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             'message': message,
             'user_id': user_id,
             'room_id': room_id,
+
             'notification': notification
         }))
 

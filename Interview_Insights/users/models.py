@@ -46,7 +46,7 @@ class JobSeeker(models.Model):
     bio = models.TextField(null=True, blank=True)
     linkedin_url = models.URLField(max_length=255, null=True, blank=True)
     portfolio_url = models.URLField(max_length=255, null=True, blank=True)
-    resume_url = models.URLField(max_length=255, null=True, blank=True)
+    resume = models.FileField(upload_to='jobseeker_resumes/', blank=True, null=True)
     current_job_title = models.CharField(max_length=100, null=True, blank=True)
     job_preferences = models.TextField(blank=True, null=True)
 
