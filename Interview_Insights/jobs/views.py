@@ -75,19 +75,68 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import JobApplication
 from .serializers import JobApplicationSerializer
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from .models import JobApplication
+from .serializers import JobApplicationSerializer, JobApplicationStatusSerializer
 
+
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets, status
+from rest_framework.response import Response
 class JobApplicationViewSet(viewsets.ModelViewSet):
     queryset = JobApplication.objects.all()
     serializer_class = JobApplicationSerializer
     permission_classes = [IsAuthenticated]
-    parser_classes = (MultiPartParser, FormParser)  # Handle multipart form data
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
 
     def perform_create(self, serializer):
         job_seeker = self.request.user.jobseeker
         serializer.save(job_seeker=job_seeker)
 
-# views.py
+    def create(self, request, *args, **kwargs):
+        use_profile_resume = request.data.get('use_profile_resume', 'false').lower() == 'true'
+        print(f"use_profile_resume.data: {use_profile_resume}")
+        
+        # Debugging: Print the entire request data and files
+        print(f"request.data: {request.data}")
+        print(f"request.FILES: {request.FILES}")
 
+        if use_profile_resume:
+            # Use the resume from the user's profile
+            resume = request.user.jobseeker.resume
+            print(f"def resume: {resume}")
+        else:
+            # Use the custom resume uploaded in this request
+            resume = request.FILES.get('resume')
+            print(f"Uploaded resume: {resume}")
+
+        if not resume:
+            return Response({"resume": ["No resume was provided."]}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Copy request data and update resume
+        data = request.data.copy()
+        data['resume'] = resume
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+
+        # Save with perform_create to ensure job_seeker is set
+        self.perform_create(serializer)
+        
+        # Update the instance with the new resume
+        if not use_profile_resume and 'resume' in request.FILES:
+            job_application = serializer.instance
+            job_application.resume = request.FILES['resume']
+            job_application.save()
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+        
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView

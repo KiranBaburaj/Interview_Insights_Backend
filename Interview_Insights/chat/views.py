@@ -6,6 +6,7 @@ from .models import ChatRoom, Message
 from .serializers import ChatRoomSerializer, MessageSerializer
 from rest_framework import viewsets, permissions, serializers
 
+
 class ChatRoomViewSet(viewsets.ModelViewSet):
     serializer_class = ChatRoomSerializer
     permission_classes = [permissions.IsAuthenticated]

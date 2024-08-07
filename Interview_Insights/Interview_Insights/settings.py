@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
     'allauth.socialaccount.providers.google','customadmin','jobseeker','Interview'
 ]
+
 """
 LOGGING = {
     'version': 1,
