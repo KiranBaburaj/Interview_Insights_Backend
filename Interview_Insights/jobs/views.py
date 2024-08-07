@@ -113,7 +113,7 @@ from .serializers import JobApplicationStatusSerializer
 from .permissions import IsEmployerOwnerOrAdmin
 
 class UpdateApplicationStatusView(APIView):
-    permission_classes = [IsAuthenticated, IsEmployerOwnerOrAdmin]
+    permission_classes = [IsAuthenticated]
 
     def patch(self, request, job_id):
         try:
