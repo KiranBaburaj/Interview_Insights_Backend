@@ -221,9 +221,37 @@ class SavedJobListView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(job_seeker=self.request.user.jobseeker)
 
+# views.py
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
+from rest_framework.exceptions import NotFound
+from .models import SavedJob
+from .serializers import SavedJobSerializer
+
 class SavedJobDetailView(generics.RetrieveDestroyAPIView):
     serializer_class = SavedJobSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return SavedJob.objects.filter(job_seeker=self.request.user.jobseeker)
+
+    def get_object(self):
+        # Retrieve the job_id from the URL
+        job_id = self.kwargs.get('job_id')
+        
+        # Attempt to get the SavedJob instance for the given job_id and the current user's job_seeker
+        try:
+            saved_job = SavedJob.objects.get(job_id=job_id, job_seeker=self.request.user.jobseeker)
+        except SavedJob.DoesNotExist:
+            # If the SavedJob does not exist, raise a NotFound exception
+            raise NotFound('Saved job not found for this user.')
+
+        return saved_job
+
+    def delete(self, request, *args, **kwargs):
+        # Get the SavedJob instance
+        self.object = self.get_object()
+        
+        # Perform the deletion
+        self.object.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
