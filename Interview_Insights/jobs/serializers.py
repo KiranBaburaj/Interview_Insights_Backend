@@ -97,6 +97,7 @@ class JobApplicationStatusSerializer(serializers.ModelSerializer):
         fields = ['status']
 
 class SavedJobSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = SavedJob
         fields = ['id', 'job_seeker', 'job', 'saved_at']
