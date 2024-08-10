@@ -31,10 +31,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['email', 'full_name']
 class JobSeekerSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    educations = EducationSerializer(many=True)
-    skills = SkillSerializer(many=True)
-    work_experience = WorkExperienceSerializer(many=True)
+    user = UserSerializer(read_only=True, required=False)
+    educations = EducationSerializer(many=True ,required=False)
+    skills = SkillSerializer(many=True,required=False)
+    work_experience = WorkExperienceSerializer(many=True,required=False)
 
     class Meta:
         model = JobSeeker
