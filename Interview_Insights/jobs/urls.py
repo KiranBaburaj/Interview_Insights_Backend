@@ -1,7 +1,7 @@
 from django import views
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import CheckApplicationStatusView, JobApplicationViewSet, JobViewSet, JobCategoryViewSet, SavedJobDetailView, SavedJobListView
+from .views import CheckApplicationStatusView, JobApplicationViewSet, JobSkillViewSet, JobViewSet, JobCategoryViewSet, SavedJobDetailView, SavedJobListView
 from .views import  UpdateApplicationStatusView
 from .views import job_applicants,JobApplicationList
 
@@ -9,6 +9,7 @@ from .views import job_applicants,JobApplicationList
 router = DefaultRouter()
 router.register(r'jobs', JobViewSet)
 router.register(r'job-categories', JobCategoryViewSet)
+router.register(r'job-skills', JobSkillViewSet, basename='job-skill')
 router.register(r'applications', JobApplicationViewSet, basename='application')
 
 urlpatterns = [

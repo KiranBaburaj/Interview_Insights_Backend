@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Job, JobCategory, JobCategoryRelation, SavedJob
+from .models import Job, JobCategory, JobCategoryRelation, JobSkill, SavedJob
 from employer.models import Company
 
 
@@ -12,6 +12,11 @@ class JobCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = JobCategory
         fields = ['id', 'name']
+
+class JobSkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobSkill
+        fields = ['id', 'name', 'description']
 
 class JobCategoryRelationSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
@@ -26,12 +31,13 @@ class JobCategoryRelationSerializer(serializers.ModelSerializer):
 class JobSerializer(serializers.ModelSerializer):
     categories = JobCategoryRelationSerializer(source='jobcategoryrelation_set', many=True)
     company = serializers.SerializerMethodField()
+    skills_required = JobSkillSerializer(many=True, required=False)  # Add this for handling required skills
 
     class Meta:
         model = Job
         fields = ['id', 'title', 'description', 'responsibilities', 'qualifications', 'nice_to_have', 'employment_type', 
                   'location', 'salary_min', 'salary_max', 'is_remote', 'application_deadline', 'posted_at', 'status', 
-                  'views_count', 'applications_count', 'experience_level', 'job_function', 'categories','company','employer']
+                  'views_count', 'applications_count', 'experience_level', 'job_function', 'categories','company','employer','skills_required']
 
     def get_company(self, job):
         # Navigate through the Employer to get the Company details
@@ -42,14 +48,20 @@ class JobSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         categories_data = validated_data.pop('jobcategoryrelation_set')
         job = Job.objects.create(**validated_data)
+        skills_data = validated_data.pop('skills_required', [])
         for category_data in categories_data:
             category_name = category_data['category']
             category, created = JobCategory.objects.get_or_create(name=category_name)
             JobCategoryRelation.objects.create(job=job, category=category)
+
+        for skill_data in skills_data:
+            skill, created = JobSkill.objects.get_or_create(**skill_data)
+            job.skills_required.add(skill)
         return job
 
     def update(self, instance, validated_data):
         categories_data = validated_data.pop('jobcategoryrelation_set')
+        skills_data = validated_data.pop('skills_required', [])
         instance = super().update(instance, validated_data)
         
         instance.jobcategoryrelation_set.all().delete()
@@ -57,6 +69,11 @@ class JobSerializer(serializers.ModelSerializer):
             category_name = category_data['category']
             category, created = JobCategory.objects.get_or_create(name=category_name)
             JobCategoryRelation.objects.create(job=instance, category=category)
+            
+        instance.skills_required.clear()
+        for skill_data in skills_data:
+            skill, created = JobSkill.objects.get_or_create(**skill_data)
+            instance.skills_required.add(skill)
         return instance
 
 

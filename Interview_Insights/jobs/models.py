@@ -8,6 +8,14 @@ class JobCategory(models.Model):
     def __str__(self):
         return self.name
 
+class JobSkill(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Job(models.Model):
     employer = models.ForeignKey(Employer, related_name='jobs', on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
@@ -27,9 +35,11 @@ class Job(models.Model):
     applications_count = models.IntegerField(default=0)
     experience_level = models.CharField(max_length=50, blank=True, null=True)
     job_function = models.CharField(max_length=100, blank=True, null=True)
+    skills_required = models.ManyToManyField(JobSkill, related_name='jobs', blank=True)  # Link to JobSkill model
 
     def __str__(self):
         return self.title
+
 
 class JobCategoryRelation(models.Model):
     job = models.ForeignKey(Job, related_name='jobcategoryrelation_set', on_delete=models.CASCADE)
