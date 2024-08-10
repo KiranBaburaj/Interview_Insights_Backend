@@ -2,7 +2,7 @@ from django.db import models
 from users.models import JobSeeker
 
 class Education(models.Model):
-    job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
+    job_seeker = models.ForeignKey(JobSeeker, related_name='educations', on_delete=models.CASCADE)
     degree_type = models.CharField(max_length=50, choices=[('Diploma', 'Diploma'), ('Bachelor', 'Bachelor'), ('Master', 'Master'), ('PhD', 'PhD'), ('Certification', 'Certification')])
     field_of_study = models.CharField(max_length=100)
     institution = models.CharField(max_length=200)
@@ -13,7 +13,8 @@ class Education(models.Model):
     description = models.TextField(null=True, blank=True) 
 
 class WorkExperience(models.Model):
-    job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
+    job_seeker = models.ForeignKey(JobSeeker, related_name='work_experience', on_delete=models.CASCADE)
+    
     job_title = models.CharField(max_length=100)
     company_name = models.CharField(max_length=200)
     company_location = models.CharField(max_length=100, null=True, blank=True)  # City, State, Country
@@ -24,7 +25,7 @@ class WorkExperience(models.Model):
     def __str__(self):
         return f"{self.job_title} at {self.company_name}"
 class Skill(models.Model):
-    job_seeker = models.ForeignKey(JobSeeker, on_delete=models.CASCADE)
+    job_seeker = models.ForeignKey(JobSeeker, related_name='skills', on_delete=models.CASCADE)
     skill_name = models.CharField(max_length=100)
     proficiency_level = models.CharField(max_length=50, choices=[('Beginner', 'Beginner'), ('Intermediate', 'Intermediate'), ('Advanced', 'Advanced'), ('Expert', 'Expert')])
     years_of_experience = models.IntegerField(null=True, blank=True)  # Number of years the skill has been used

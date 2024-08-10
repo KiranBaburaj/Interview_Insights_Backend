@@ -32,91 +32,54 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['email', 'full_name']
 class JobSeekerSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    educations = EducationSerializer(many=True, required=False)
-    skills = SkillSerializer(many=True, required=False)
-    work_experience = WorkExperienceSerializer(many=True, required=False)
+    educations = EducationSerializer(many=True)
+    skills = SkillSerializer(many=True)
+    work_experience = WorkExperienceSerializer(many=True)
 
     class Meta:
         model = JobSeeker
-        fields = '__all__'
-    def to_internal_value(self, data):
-        print("Data before validation:", data)
-        return super().to_internal_value(data)
-
-    def create(self, validated_data):
-        print("Creating JobSeeker with validated data:", validated_data)
-        
-        educations_data = validated_data.pop('educations', [])
-        skills_data = validated_data.pop('skills', [])
-        work_experience_data = validated_data.pop('work_experience', [])
-        
-        print("Educations data:", educations_data)
-        print("Skills data:", skills_data)
-        print("Work experience data:", work_experience_data)
-        
-        job_seeker = JobSeeker.objects.create(**validated_data)
-        
-        for education_data in educations_data:
-            print("Creating Education with data:", education_data)
-            Education.objects.create(job_seeker=job_seeker, **education_data)
-
-        for skill_data in skills_data:
-            print("Creating Skill with data:", skill_data)
-            Skill.objects.create(job_seeker=job_seeker, **skill_data)
-
-        for work_experience_data in work_experience_data:
-            print("Creating WorkExperience with data:", work_experience_data)
-            WorkExperience.objects.create(job_seeker=job_seeker, **work_experience_data)
-
-        return job_seeker
-
+        fields = [
+            'user', 'phone_number', 'date_of_birth', 'profile_photo', 'bio', 
+            'linkedin_url', 'portfolio_url', 'resume', 'current_job_title', 
+            'job_preferences', 'educations', 'skills', 'work_experience'
+        ]
+    
     def update(self, instance, validated_data):
-        print("Updating JobSeeker with validated data:", validated_data)
-        validated_data['job_seeker'] = self.context['request'].user.jobseeker
         educations_data = validated_data.pop('educations', [])
         skills_data = validated_data.pop('skills', [])
         work_experience_data = validated_data.pop('work_experience', [])
         
-        print("Educations data:", educations_data)
-        print("Skills data:", skills_data)
-        print("Work experience data:", work_experience_data)
-        
-        # Update the JobSeeker instance
+        # Update the JobSeeker instance fields
         instance = super().update(instance, validated_data)
-        print("Updated JobSeeker instance:", instance)
 
-        # Update or create educations
+        # Handle Education records
+        new_education_ids = set(education.get('id') for education in educations_data if education.get('id'))
+        instance.educations.exclude(id__in=new_education_ids).delete()
         for education_data in educations_data:
-            print("Updating or creating Education with data:", education_data)
             Education.objects.update_or_create(
                 job_seeker=instance,
-                field_of_study=education_data.get('field_of_study'),
+                id=education_data.get('id'),
                 defaults=education_data
             )
 
-        # Update or create skills
+        # Handle Skill records
+        new_skill_ids = set(skill.get('id') for skill in skills_data if skill.get('id'))
+        instance.skills.exclude(id__in=new_skill_ids).delete()
         for skill_data in skills_data:
-            print("Updating or creating Skill with data:", skill_data)
             Skill.objects.update_or_create(
                 job_seeker=instance,
-                skill_name=skill_data.get('skill_name'),
+                id=skill_data.get('id'),
                 defaults=skill_data
             )
 
-        # Update or create work experiences
+        # Handle WorkExperience records
+        new_work_experience_ids = set(work_exp.get('id') for work_exp in work_experience_data if work_exp.get('id'))
+        instance.work_experience.exclude(id__in=new_work_experience_ids).delete()
         for work_experience_data in work_experience_data:
-            print("Updating or creating WorkExperience with data:", work_experience_data)
             WorkExperience.objects.update_or_create(
                 job_seeker=instance,
-                job_title=work_experience_data.get('job_title'),
+                id=work_experience_data.get('id'),
                 defaults=work_experience_data
             )
-
-        instance.refresh_from_db()
-        
-        # Re-fetch related fields
-        instance.education_set.set(Education.objects.filter(job_seeker=instance))
-        instance.skill_set.set(Skill.objects.filter(job_seeker=instance))
-        instance.workexperience_set.set(WorkExperience.objects.filter(job_seeker=instance))
 
         return instance
