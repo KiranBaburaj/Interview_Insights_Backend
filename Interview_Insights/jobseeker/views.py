@@ -8,7 +8,11 @@ class JobSeekerRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return JobSeeker.objects.get(user=self.request.user)
-
+    def put(self, request, *args, **kwargs):
+        print("Request data:", request.data)
+        return super().put(request, *args, **kwargs)
+    
+    
 class JobSeekerListCreateAPIView(generics.ListCreateAPIView):
     queryset = JobSeeker.objects.all()
     serializer_class = JobSeekerSerializer

@@ -52,9 +52,11 @@ class JobApplication(models.Model):
     STATUS_CHOICES = [
         ('applied', 'Applied'),
         ('reviewed', 'Reviewed'),
+         ('interview_scheduled', 'Interview_Scheduled'),
         ('interviewed', 'Interviewed'),
         ('offered', 'Offered'),
         ('hired', 'Hired'),
+       
         ('rejected', 'Rejected'),
     ]
     job = models.ForeignKey(Job, related_name='applications', on_delete=models.CASCADE)
