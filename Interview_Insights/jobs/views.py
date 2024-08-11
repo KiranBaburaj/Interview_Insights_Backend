@@ -273,3 +273,57 @@ class SavedJobDetailView(generics.RetrieveDestroyAPIView):
         # Perform the deletion
         self.object.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.db.models import Q
+
+@api_view(['GET'])
+def matching_jobseekers(request):
+    job_id = request.query_params.get('job_id')
+    if not job_id:
+        return Response({"error": "Job ID is required"}, status=400)
+
+    try:
+        job = Job.objects.get(id=job_id)
+    except Job.DoesNotExist:
+        return Response({"error": "Job not found"}, status=404)
+
+    # Create a query to find matching job seekers
+    matching_seekers = JobSeeker.objects.filter(
+        Q(skills__skill_name__in=job.skills_required.all()) |
+        Q(work_experience__job_title__icontains=job.title) |
+        Q(educations__field_of_study__icontains=job.job_function)
+    ).distinct()
+
+    serializer = JobSeekerSerializer(matching_seekers, many=True)
+    return Response(serializer.data)
+
+from django.db.models import Q
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import Job, JobSkill
+from .serializers import JobSerializer
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def matching_jobs(request):
+    job_seeker = request.user.jobseeker
+    
+    # Get the job seeker's skills
+    job_seeker_skills = job_seeker.skills.all()
+    
+    # Convert JobSkill objects to their names
+    job_seeker_skill_names = job_seeker_skills.values_list('skill_name', flat=True)
+
+    # Find matching jobs
+    matching_jobs = Job.objects.filter(
+        Q(skills_required__name__in=job_seeker_skill_names) |
+        Q(job_function__icontains=job_seeker.current_job_title) |
+        Q(title__icontains=job_seeker.current_job_title)
+    ).distinct()
+
+    serializer = JobSerializer(matching_jobs, many=True)
+    return Response(serializer.data)
