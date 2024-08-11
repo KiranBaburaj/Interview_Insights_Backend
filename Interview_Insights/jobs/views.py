@@ -314,15 +314,18 @@ def matching_jobs(request):
     
     # Get the job seeker's skills
     job_seeker_skills = job_seeker.skills.all()
+    job_seeker_work_experience=job_seeker.work_experience.all()
     
     # Convert JobSkill objects to their names
     job_seeker_skill_names = job_seeker_skills.values_list('skill_name', flat=True)
-
+    job_seeker_EXPERIENCE_names= job_seeker_work_experience.values_list('job_title',flat=True)
     # Find matching jobs
     matching_jobs = Job.objects.filter(
         Q(skills_required__name__in=job_seeker_skill_names) |
         Q(job_function__icontains=job_seeker.current_job_title) |
-        Q(title__icontains=job_seeker.current_job_title)
+         Q(experience_level__icontains=job_seeker.current_job_title)|
+        Q(title__icontains=job_seeker_EXPERIENCE_names)|
+        Q(status='open') 
     ).distinct()
 
     serializer = JobSerializer(matching_jobs, many=True)
