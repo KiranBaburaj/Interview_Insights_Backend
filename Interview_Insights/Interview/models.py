@@ -29,7 +29,7 @@ class InterviewFeedback(models.Model):
         ('job_offer', 'Job Offer'),
         ('hired', 'Hired'),
     ]
-    interview_schedule = models.ForeignKey(InterviewSchedule, related_name='feedbacks', on_delete=models.CASCADE)
+    interview_schedule = models.OneToOneField(InterviewSchedule, related_name='feedback', on_delete=models.CASCADE)
     stage = models.CharField(max_length=50, choices=STAGE_CHOICES, unique=True)
     feedback = models.TextField(blank=True, null=True)
     score = models.PositiveIntegerField(default=0)  # You can set a max value if needed (e.g., max_value=100)
