@@ -318,13 +318,18 @@ def matching_jobs(request):
     
     # Convert JobSkill objects to their names
     job_seeker_skill_names = job_seeker_skills.values_list('skill_name', flat=True)
+    print(job_seeker_skill_names)
     job_seeker_EXPERIENCE_names= job_seeker_work_experience.values_list('job_title',flat=True)
+    print(job_seeker_EXPERIENCE_names)
+    print("currjob ",job_seeker.current_job_title)
+    print(job_seeker.current_job_title)
+
     # Find matching jobs
     matching_jobs = Job.objects.filter(
-        Q(skills_required__name__in=job_seeker_skill_names) |
+        (Q(skills_required__name__in=job_seeker_skill_names) |
         Q(job_function__icontains=job_seeker.current_job_title) |
          Q(experience_level__icontains=job_seeker.current_job_title)|
-        Q(title__icontains=job_seeker_EXPERIENCE_names)|
+        Q(title__icontains=job_seeker_EXPERIENCE_names))&
         Q(status='open') 
     ).distinct()
 

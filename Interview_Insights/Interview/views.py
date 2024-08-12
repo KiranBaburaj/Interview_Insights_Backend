@@ -76,3 +76,14 @@ class ListInterviewSchedulesView(generics.ListAPIView):
         elif user.is_staff:
             return InterviewSchedule.objects.all()
         return InterviewSchedule.objects.none()
+    
+
+from rest_framework import viewsets
+from .models import InterviewFeedback
+from .serializers import InterviewFeedbackSerializer
+from rest_framework import viewsets, permissions
+
+class InterviewFeedbackViewSet(viewsets.ModelViewSet):
+    queryset = InterviewFeedback.objects.all()
+    serializer_class = InterviewFeedbackSerializer
+    permission_classes = [permissions.IsAuthenticated]
