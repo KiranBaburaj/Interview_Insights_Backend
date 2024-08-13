@@ -88,10 +88,4 @@ class InterviewFeedbackViewSet(viewsets.ModelViewSet):
     serializer_class = InterviewFeedbackSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        """
-        Optionally restricts the returned feedbacks to those related to the current user's job applications.
-        """
-        queryset = super().get_queryset()
-        user = self.request.user
-        return queryset.filter(interview_schedule__job_application__job_seeker__user=user)
+
