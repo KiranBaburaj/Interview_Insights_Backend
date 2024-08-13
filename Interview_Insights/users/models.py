@@ -49,6 +49,9 @@ class JobSeeker(models.Model):
     resume = models.FileField(upload_to='jobseeker_resumes/', blank=True, null=True)
     current_job_title = models.CharField(max_length=100, null=True, blank=True)
     job_preferences = models.TextField(blank=True, null=True)
+    visible_applications = models.JSONField(default=list, blank=True)
+
+
 
 class Employer(models.Model):
 

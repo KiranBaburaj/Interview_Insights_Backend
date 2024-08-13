@@ -4,6 +4,19 @@ from users.models import JobSeeker, User
 from rest_framework import serializers
 from .models import Education, WorkExperience, Skill
 from users.models import JobSeeker, User
+from Interview.models import InterviewFeedback, InterviewSchedule
+from Interview.serializers import InterviewFeedbackSerializer, InterviewScheduleSerializer
+from jobs.models import  JobApplication
+
+
+class JobApplicationSerializer(serializers.ModelSerializer):
+    
+
+    class Meta:
+        model = JobApplication
+        fields = '__all__'
+
+
 
 class EducationSerializer(serializers.ModelSerializer):
     job_seeker = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -29,20 +42,42 @@ class SkillSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'full_name']
+        fields = ['email', 'full_name','id']
 class JobSeekerSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True, required=False)
     educations = EducationSerializer(many=True ,required=False)
     skills = SkillSerializer(many=True,required=False)
     work_experience = WorkExperienceSerializer(many=True,required=False)
+    interview_feedback = serializers.SerializerMethodField()
+    myapplications = serializers.SerializerMethodField()
+    interview_schedule = serializers.SerializerMethodField()
+
 
     class Meta:
         model = JobSeeker
         fields = [
-            'user', 'phone_number', 'date_of_birth', 'profile_photo', 'bio', 
+            'user', 'phone_number', 'date_of_birth', 'profile_photo', 'bio', 'interview_schedule','myapplications',
             'linkedin_url', 'portfolio_url', 'resume', 'current_job_title', 
-            'job_preferences', 'educations', 'skills', 'work_experience'
+            'job_preferences', 'educations', 'skills', 'work_experience','interview_feedback','visible_applications'
         ]
+    def get_interview_feedback(self, obj):
+        feedbacks = InterviewFeedback.objects.filter(
+            interview_schedule__job_application__job_seeker=obj
+        )
+        return InterviewFeedbackSerializer(feedbacks, many=True).data
+    
+    def get_interview_schedule(self, obj):
+        schedule = InterviewSchedule.objects.filter(
+            job_application__job_seeker=obj
+        )
+        return InterviewScheduleSerializer(schedule, many=True).data
+    
+    
+    def get_myapplications(self, obj):
+        applications = JobApplication.objects.filter(
+            job_seeker=obj
+        )
+        return JobApplicationSerializer(applications, many=True).data
     
     def update(self, instance, validated_data):
         educations_data = validated_data.pop('educations', [])

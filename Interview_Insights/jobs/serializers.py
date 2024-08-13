@@ -69,7 +69,7 @@ class JobSerializer(serializers.ModelSerializer):
             category_name = category_data['category']
             category, created = JobCategory.objects.get_or_create(name=category_name)
             JobCategoryRelation.objects.create(job=instance, category=category)
-            
+
         instance.skills_required.clear()
         for skill_data in skills_data:
             skill, created = JobSkill.objects.get_or_create(**skill_data)
@@ -80,7 +80,7 @@ class JobSerializer(serializers.ModelSerializer):
 # serializers.py
 from rest_framework import serializers
 from .models import JobApplication
-from users.serializers import JobSeekerSerializer
+from jobseeker.serializers import JobSeekerSerializer
 
 class JobApplicationSerializer(serializers.ModelSerializer):
     job_details = JobSerializer(source='job', read_only=True) 
