@@ -34,6 +34,7 @@ class InterviewFeedback(models.Model):
     feedback = models.TextField(blank=True, null=True)
     score = models.PositiveIntegerField(default=0)  # You can set a max value if needed (e.g., max_value=100)
     provided_at = models.DateTimeField(default=timezone.now)
+    is_approved = models.BooleanField(default=False)  # New field to indicate approval
 
 
 
