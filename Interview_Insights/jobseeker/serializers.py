@@ -6,18 +6,34 @@ from .models import Education, WorkExperience, Skill
 from users.models import JobSeeker, User
 from Interview.models import InterviewFeedback, InterviewSchedule
 from Interview.serializers import InterviewFeedbackSerializer, InterviewScheduleSerializer
-from jobs.models import  JobApplication
+from jobs.models import  JobApplication,Job
+from jobs.serializers  import JobSerializer
+from employer.serializers  import CompanySerializer
+
 
 
 class JobApplicationSerializer(serializers.ModelSerializer):
-    
+    job_details = JobSerializer(source='job', read_only=True) 
+    job = serializers.PrimaryKeyRelatedField(queryset=Job.objects.all())  # Ensure this is the correct field type
+    company = serializers.SerializerMethodField()
 
     class Meta:
         model = JobApplication
-        fields = '__all__'
+        fields = ['id', 'job', 'job_seeker', 'resume', 'cover_letter', 'status', 'applied_at', 'updated_at', 'stage','company','job_details']
+        read_only_fields = ['job_seeker', 'status', 'applied_at', 'updated_at','job_details']
 
-
-
+    def get_company(self, obj):
+        # Navigate through the job to the employer to get the company details
+        job = obj.job
+        employer = job.employer if job else None
+        company = employer.company if employer else None
+        return CompanySerializer(company).data if company else None
+    
+    def update(self, instance, validated_data):
+        instance.status = validated_data.get('status', instance.status)
+        instance.save()
+        return instance
+    
 class EducationSerializer(serializers.ModelSerializer):
     job_seeker = serializers.PrimaryKeyRelatedField(read_only=True)
 
