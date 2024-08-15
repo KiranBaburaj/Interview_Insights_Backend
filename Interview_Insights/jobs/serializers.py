@@ -28,6 +28,7 @@ class JobCategoryRelationSerializer(serializers.ModelSerializer):
         model = JobCategoryRelation
         fields = ['category']
 
+        
 class JobSerializer(serializers.ModelSerializer):
     categories = JobCategoryRelationSerializer(source='jobcategoryrelation_set', many=True)
     company = serializers.SerializerMethodField()
@@ -37,46 +38,60 @@ class JobSerializer(serializers.ModelSerializer):
         model = Job
         fields = ['id', 'title', 'description', 'responsibilities', 'qualifications', 'nice_to_have', 'employment_type', 
                   'location', 'salary_min', 'salary_max', 'is_remote', 'application_deadline', 'posted_at', 'status', 
-                  'views_count', 'applications_count', 'experience_level', 'job_function', 'categories','company','employer','skills_required']
+                  'views_count', 'applications_count', 'experience_level', 'job_function', 'categories', 'company', 
+                  'employer', 'skills_required']
 
     def get_company(self, job):
         # Navigate through the Employer to get the Company details
         employer = job.employer
         company = employer.company if employer else None
         return CompanySerializer(company).data if company else None
-    
+
     def create(self, validated_data):
-        categories_data = validated_data.pop('jobcategoryrelation_set')
-        job = Job.objects.create(**validated_data)
+        # Handle categories
+        categories_data = validated_data.pop('jobcategoryrelation_set', [])
+        
+        # Handle skills
         skills_data = validated_data.pop('skills_required', [])
+        
+        # Create the job instance without Many-to-Many fields
+        job = Job.objects.create(**validated_data)
+        
+        # Create job categories
         for category_data in categories_data:
             category_name = category_data['category']
             category, created = JobCategory.objects.get_or_create(name=category_name)
             JobCategoryRelation.objects.create(job=job, category=category)
 
+        # Create job skills
         for skill_data in skills_data:
-            skill, created = JobSkill.objects.get_or_create(**skill_data)
-            job.skills_required.add(skill)
+            skill_name = skill_data['name']  # Ensure this is the correct field for the skill name
+            skill, created = JobSkill.objects.get_or_create(name=skill_name)
+            job.skills_required.add(skill)  # Add skill to the job's Many-to-Many relationship
+
         return job
 
     def update(self, instance, validated_data):
-        categories_data = validated_data.pop('jobcategoryrelation_set')
+        categories_data = validated_data.pop('jobcategoryrelation_set', [])
         skills_data = validated_data.pop('skills_required', [])
+        
         instance = super().update(instance, validated_data)
         
+        # Update categories
         instance.jobcategoryrelation_set.all().delete()
         for category_data in categories_data:
             category_name = category_data['category']
             category, created = JobCategory.objects.get_or_create(name=category_name)
             JobCategoryRelation.objects.create(job=instance, category=category)
 
+        # Update skills
         instance.skills_required.clear()
         for skill_data in skills_data:
-            skill, created = JobSkill.objects.get_or_create(**skill_data)
+            skill_name = skill_data['name']  # Ensure this is the correct field for the skill name
+            skill, created = JobSkill.objects.get_or_create(name=skill_name)
             instance.skills_required.add(skill)
+
         return instance
-
-
 # serializers.py
 from rest_framework import serializers
 from .models import JobApplication

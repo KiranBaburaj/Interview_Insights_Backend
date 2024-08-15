@@ -15,6 +15,37 @@ from .filters import JobFilter,JobApplicationFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import filters
+
+# views.py
+from rest_framework import viewsets, permissions, generics, status
+from rest_framework.decorators import action, api_view
+from rest_framework import viewsets, permissions
+from rest_framework.permissions import IsAuthenticated
+from .models import JobApplication
+from users.models import JobSeeker
+from .serializers import JobApplicationSerializer
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
+from .models import JobApplication
+from .serializers import JobApplicationSerializer
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from .models import JobApplication
+from .serializers import JobApplicationSerializer, JobApplicationStatusSerializer
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from .models import JobSkill
+from .serializers import JobSkillSerializer
+from .permissions import IsEmployerOwnerOrAdmin
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+
+
 class JobViewSet(viewsets.ModelViewSet):
     serializer_class = JobSerializer
     queryset = Job.objects.none()
@@ -31,13 +62,13 @@ class JobViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.action in ['list', 'retrieve']:
-            queryset = Job.objects.all()
+            queryset = Job.objects.filter(is_active=True)
         elif self.request.user.is_staff:
             queryset = Job.objects.all()
         elif not hasattr(self.request.user, 'employer'):
             queryset = Job.objects.none()
         else:
-            queryset = Job.objects.filter(employer=self.request.user.employer)
+            queryset = Job.objects.filter(employer=self.request.user.employer, is_active=True)
         
         return queryset
 
@@ -46,11 +77,7 @@ class JobViewSet(viewsets.ModelViewSet):
             serializer.save(employer=self.request.user.employer)
         else:
             serializer.save()
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from .models import JobSkill
-from .serializers import JobSkillSerializer
-from .permissions import IsEmployerOwnerOrAdmin
+
 
 class JobSkillViewSet(viewsets.ModelViewSet):
     serializer_class = JobSkillSerializer
@@ -80,31 +107,6 @@ class JobCategoryViewSet(viewsets.ModelViewSet):
         serializer.save()
 
 
-# views.py
-from rest_framework import viewsets, permissions, generics, status
-from rest_framework.decorators import action, api_view
-from rest_framework import viewsets, permissions
-from rest_framework.permissions import IsAuthenticated
-from .models import JobApplication
-from users.models import JobSeeker
-from .serializers import JobApplicationSerializer
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
-from .models import JobApplication
-from .serializers import JobApplicationSerializer
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from .models import JobApplication
-from .serializers import JobApplicationSerializer, JobApplicationStatusSerializer
-
-
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import viewsets, status
-from rest_framework.response import Response
 class JobApplicationViewSet(viewsets.ModelViewSet):
     queryset = JobApplication.objects.all()
     serializer_class = JobApplicationSerializer

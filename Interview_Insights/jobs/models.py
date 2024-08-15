@@ -35,6 +35,7 @@ class Job(models.Model):
     applications_count = models.IntegerField(default=0)
     experience_level = models.CharField(max_length=50, blank=True, null=True)
     job_function = models.CharField(max_length=100, blank=True, null=True)
+    is_active = models.BooleanField(default=True)  # New field added
     skills_required = models.ManyToManyField(JobSkill, related_name='jobs', blank=True)  # Link to JobSkill model
 
     def __str__(self):
