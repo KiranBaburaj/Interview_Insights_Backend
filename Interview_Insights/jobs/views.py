@@ -1,49 +1,34 @@
-# employer/views.py
 
-from rest_framework import viewsets, permissions
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from .models import Job, JobCategory, SavedJob
-from .serializers import JobApplicationStatusSerializer, JobSerializer, JobCategorySerializer, SavedJobSerializer
-from .permissions import IsEmployerOwnerOrAdmin
-from rest_framework import viewsets
-from rest_framework.response import Response
+from rest_framework import viewsets, permissions, generics, status, filters
 from rest_framework.views import APIView
-from rest_framework import generics
-from .models import JobApplication
-from .serializers import JobApplicationSerializer
-from .filters import JobFilter,JobApplicationFilter
+from rest_framework.response import Response
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.exceptions import NotFound
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import filters
+from django.db.models import Q
 
-# views.py
-from rest_framework import viewsets, permissions, generics, status
-from rest_framework.decorators import action, api_view
-from rest_framework import viewsets, permissions
-from rest_framework.permissions import IsAuthenticated
-from .models import JobApplication
+# Importing models
+from .models import Job, JobApplication, JobCategory, SavedJob, JobSkill
 from users.models import JobSeeker
-from .serializers import JobApplicationSerializer
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
-from .models import JobApplication
-from .serializers import JobApplicationSerializer
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from .models import JobApplication
-from .serializers import JobApplicationSerializer, JobApplicationStatusSerializer
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from .models import JobSkill
-from .serializers import JobSkillSerializer
+
+# Importing serializers
+from .serializers import (
+    JobSerializer, 
+    JobApplicationSerializer, 
+    JobCategorySerializer, 
+    SavedJobSerializer, 
+    JobApplicationStatusSerializer, 
+    JobSkillSerializer
+)
+
+# Importing custom permissions
 from .permissions import IsEmployerOwnerOrAdmin
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import viewsets, status
-from rest_framework.response import Response
+
+# Importing filters
+from .filters import JobFilter, JobApplicationFilter
+
 
 
 class JobViewSet(viewsets.ModelViewSet):
@@ -156,13 +141,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-        
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .models import JobApplication
-from .serializers import JobApplicationStatusSerializer
-from .permissions import IsEmployerOwnerOrAdmin
+      
 
 class CheckApplicationStatusView(APIView):
     permission_classes = [IsAuthenticated]
@@ -171,15 +150,7 @@ class CheckApplicationStatusView(APIView):
         job_seeker = self.request.user.jobseeker
         has_applied = JobApplication.objects.filter(job_seeker=job_seeker, job_id=job_id).exists()
         return Response({'hasApplied': has_applied})
-# views.py
 
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from .models import JobApplication
-from .serializers import JobApplicationStatusSerializer
-from .permissions import IsEmployerOwnerOrAdmin
 
 class UpdateApplicationStatusView(APIView):
     permission_classes = [IsAuthenticated]
@@ -202,11 +173,7 @@ class UpdateApplicationStatusView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# Add the necessary imports at the beginning of your views.py file
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from .models import Job, JobApplication
-from .serializers import JobApplicationSerializer
+
 
 @api_view(['GET'])
 def job_applicants(request, job_id):
@@ -241,12 +208,7 @@ class SavedJobListView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(job_seeker=self.request.user.jobseeker)
 
-# views.py
-from rest_framework import generics, permissions, status
-from rest_framework.response import Response
-from rest_framework.exceptions import NotFound
-from .models import SavedJob
-from .serializers import SavedJobSerializer
+
 
 class SavedJobDetailView(generics.RetrieveDestroyAPIView):
     serializer_class = SavedJobSerializer
@@ -302,12 +264,7 @@ def matching_jobseekers(request):
     serializer = JobSeekerSerializer(matching_seekers, many=True)
     return Response(serializer.data)
 
-from django.db.models import Q
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from .models import Job, JobSkill
-from .serializers import JobSerializer
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
