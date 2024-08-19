@@ -69,13 +69,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         chat_room = ChatRoom.objects.get(id=self.room_id)
         Message.objects.create(chat_room=chat_room, sender=user, content=message)
 
-# consumers.py
-import json
-import logging
-from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.db import database_sync_to_async
-from django.contrib.auth import get_user_model
-from .models import Notification, ChatRoom
 
 User = get_user_model()
 logger = logging.getLogger('notifications')

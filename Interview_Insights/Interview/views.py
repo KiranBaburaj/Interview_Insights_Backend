@@ -1,11 +1,12 @@
 # views.py
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions, status,viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from django.db.models import Q
-from .models import InterviewSchedule, JobApplication
-from .serializers import InterviewScheduleSerializer
+from .models import InterviewSchedule, JobApplication,InterviewFeedback
+from .serializers import InterviewScheduleSerializer,InterviewFeedbackSerializer
 from jobs.permissions import IsEmployerOwnerOrAdmin
+
 
 class ScheduleInterviewView(generics.CreateAPIView):
     serializer_class = InterviewScheduleSerializer
@@ -78,10 +79,6 @@ class ListInterviewSchedulesView(generics.ListAPIView):
         return InterviewSchedule.objects.none()
     
 
-from rest_framework import viewsets
-from .models import InterviewFeedback
-from .serializers import InterviewFeedbackSerializer
-from rest_framework import viewsets, permissions
 
 class InterviewFeedbackViewSet(viewsets.ModelViewSet):
     queryset = InterviewFeedback.objects.all()

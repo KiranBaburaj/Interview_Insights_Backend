@@ -17,13 +17,39 @@ class JobSkill(models.Model):
 
 
 class Job(models.Model):
+    FULL_TIME = 'Full-time'
+    PART_TIME = 'Part-time'
+    CONTRACT = 'Contract'
+    TEMPORARY = 'Temporary'
+    INTERNSHIP = 'Internship'
+    FREELANCE = 'Freelance'
+    EMPLOYMENT_TYPE_CHOICES = [
+        (FULL_TIME, 'Full-time'),
+        (PART_TIME, 'Part-time'),
+        (CONTRACT, 'Contract'),
+        (TEMPORARY, 'Temporary'),
+        (INTERNSHIP, 'Internship'),
+        (FREELANCE, 'Freelance'),
+    ]
+
+    # Choices for experience_level
+    ENTRY_LEVEL = 'Entry level'
+    MID_LEVEL = 'Mid level'
+    SENIOR_LEVEL = 'Senior level'
+    EXECUTIVE = 'Executive'
+    EXPERIENCE_LEVEL_CHOICES = [
+        (ENTRY_LEVEL, 'Entry level'),
+        (MID_LEVEL, 'Mid level'),
+        (SENIOR_LEVEL, 'Senior level'),
+        (EXECUTIVE, 'Executive'),
+    ]
     employer = models.ForeignKey(Employer, related_name='jobs', on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     description = models.TextField()
     responsibilities = models.TextField(blank=True, null=True)
     qualifications = models.TextField(blank=True, null=True)
     nice_to_have = models.TextField(blank=True, null=True)
-    employment_type = models.CharField(max_length=50)
+    employment_type = models.CharField(max_length=50, choices=EMPLOYMENT_TYPE_CHOICES)
     location = models.CharField(max_length=100, blank=True, null=True)
     salary_min = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     salary_max = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
@@ -33,7 +59,7 @@ class Job(models.Model):
     status = models.CharField(max_length=20, default='open')
     views_count = models.IntegerField(default=0)
     applications_count = models.IntegerField(default=0)
-    experience_level = models.CharField(max_length=50, blank=True, null=True)
+    experience_level = models.CharField(max_length=50, choices=EXPERIENCE_LEVEL_CHOICES, blank=True, null=True)
     job_function = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)  # New field added
     skills_required = models.ManyToManyField(JobSkill, related_name='jobs', blank=True)  # Link to JobSkill model

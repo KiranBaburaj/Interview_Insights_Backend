@@ -1,17 +1,12 @@
 from django.shortcuts import render
-from users.models import User 
-# Create your views here.
-from rest_framework import viewsets, permissions
-from .models import ChatRoom, Message
-from .serializers import ChatRoomSerializer, MessageSerializer
-from rest_framework import viewsets, permissions, serializers
-
-from rest_framework import viewsets, permissions, serializers
+from .models import ChatRoom, Message,Notification
+from .serializers import ChatRoomSerializer, MessageSerializer,NotificationSerializer
+from rest_framework import viewsets, permissions, serializers,status
 from rest_framework.response import Response
-from rest_framework import status
-from .models import ChatRoom
-from .serializers import ChatRoomSerializer
 from users.models import User
+from rest_framework.decorators import action
+
+
 
 class ChatRoomViewSet(viewsets.ModelViewSet):
     serializer_class = ChatRoomSerializer
@@ -84,13 +79,6 @@ class MessageViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         chat_room = ChatRoom.objects.get(id=self.kwargs['chat_room_pk'])
         serializer.save(sender=self.request.user, chat_room=chat_room)
-
-# views.py
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from rest_framework.decorators import action
-from .models import Notification
-from .serializers import NotificationSerializer
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import ChatRoom, Message
 from django.contrib.auth import get_user_model
+from .models import Notification
 
 User = get_user_model()
 
@@ -33,9 +34,7 @@ class ChatRoomSerializer(serializers.ModelSerializer):
    
 
 
-# serializers.py
-from rest_framework import serializers
-from .models import Notification
+
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:

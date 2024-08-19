@@ -1,15 +1,11 @@
 # employer/views.py
 
-from rest_framework import generics, permissions
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from .models import Company
 from users.models import Employer
 from .serializers import CompanySerializer
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework import permissions
-from rest_framework import viewsets# employer/permissions.py
-from rest_framework import permissions
+from rest_framework import permissions,generics,viewsets
 
 class IsEmployerOwnerOrAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -25,11 +21,7 @@ class IsEmployerOwnerOrAdmin(permissions.BasePermission):
             return True
         # For non-admins, only allow if they own the company
         return obj.employer == request.user.employer
-# employer/views.py
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from .models import Company
-from .serializers import CompanySerializer
+
 
 
 class CompanyViewSet(viewsets.ModelViewSet):
