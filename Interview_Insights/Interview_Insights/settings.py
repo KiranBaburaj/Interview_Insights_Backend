@@ -9,6 +9,14 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 from pathlib import Path
 
@@ -20,10 +28,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-nua0-^2mwidhz#kjwj9b=m#0wdjp8y%rqu7q6cb2%=28u557=x'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = []
 
@@ -36,9 +44,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'uwantshim@gmail.com'
-EMAIL_HOST_PASSWORD = 'ware ozpf tviv gafq'
-
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 import os
 
 # Base directory
@@ -145,8 +152,8 @@ AUTH_USER_MODEL = 'users.User'
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "APP": {
-            "client_id": "250807523474-f1r1ch6t4t0lgi42ar72ce3svngss5d5.apps.googleusercontent.com",  # replace me
-            "secret": "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",        # replace me
+                  "client_id": os.getenv('GOOGLE_CLIENT_ID'),
+            "secret": os.getenv('GOOGLE_CLIENT_SECRET'),
             "key": "",                               # leave empty
         },
         "SCOPE": [
@@ -222,16 +229,17 @@ REST_FRAMEWORK = {
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# Database configuration
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'inter',
-        'USER': 'postgres',
-        'PASSWORD': '916916',  # Replace with your actual password
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }}
-
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

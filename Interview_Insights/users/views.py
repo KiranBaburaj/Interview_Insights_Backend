@@ -23,10 +23,6 @@ from dj_rest_auth.registration.views import SocialLoginView
 # Importing other models used in the views
 from employer.models import Company
 
-# Views definition will follow here
-
-
-
 
 from .models import User, OTP, JobSeeker, Employer, Recruiter
 from .serializers import (
