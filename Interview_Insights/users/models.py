@@ -7,6 +7,10 @@ from employer.models import Company
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
+from django.db import models
+from django.utils import timezone
+from datetime import timedelta
+
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -67,9 +71,6 @@ class Recruiter(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     recruiter_level = models.CharField(max_length=50, choices=[('junior', 'Junior'), ('senior', 'Senior')])
 
-from django.db import models
-from django.utils import timezone
-from datetime import timedelta
 
 class OTP(models.Model):
     email = models.EmailField()

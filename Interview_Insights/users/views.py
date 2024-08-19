@@ -1,15 +1,32 @@
-from rest_framework import status
+# Importing necessary modules
+from rest_framework import status, viewsets, permissions, generics, filters
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from django.core.mail import send_mail
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
+from employer.models import Company
+from .models import User
 import random
+import requests
+
+# Importing necessary modules from third-party libraries
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Error
+from dj_rest_auth.registration.views import SocialLoginView
+
+# Importing other models used in the views
+from employer.models import Company
+
+# Views definition will follow here
+
+
+
 
 from .models import User, OTP, JobSeeker, Employer, Recruiter
 from .serializers import (
@@ -75,21 +92,7 @@ class SignupAndSendOTPView(APIView):
             OTP.objects.filter(email=email).delete()
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import AllowAny
-from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import AllowAny
-from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User
-from employer.models import Company
+
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
@@ -329,19 +332,6 @@ class PasswordResetConfirmView(APIView):
             except User.DoesNotExist:
                 return Response({"error": "User with this email does not exist"}, status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# views.py
-import requests
-import requests
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Error
-from dj_rest_auth.registration.views import SocialLoginView
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
 
 
 class GoogleLogin(SocialLoginView):

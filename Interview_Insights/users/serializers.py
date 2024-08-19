@@ -3,6 +3,20 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import JobSeeker, Employer, Recruiter, Company
+# serializers.py
+
+from rest_framework import serializers
+from .models import User
+# accounts/serializers.py
+
+from rest_framework import serializers
+from django.contrib.auth import authenticate
+from django.utils.translation import gettext_lazy as _
+# users/serializers.py
+
+from rest_framework import serializers
+from .models import OTP
+
 
 User = get_user_model()
 
@@ -59,11 +73,7 @@ class SignupSerializer(serializers.Serializer):
             Recruiter.objects.create(user=user, **validated_data.get('recruiter', {}))
 
         return user
-# accounts/serializers.py
 
-from rest_framework import serializers
-from django.contrib.auth import authenticate
-from django.utils.translation import gettext_lazy as _
 
 class CustomAuthTokenSerializer(serializers.Serializer):
     email = serializers.EmailField(label=_("Email"))
@@ -85,10 +95,7 @@ class CustomAuthTokenSerializer(serializers.Serializer):
 
         attrs['user'] = user
         return attrs
-# users/serializers.py
 
-from rest_framework import serializers
-from .models import OTP
 
 class OTPSerializer(serializers.ModelSerializer):
     class Meta:
@@ -96,10 +103,6 @@ class OTPSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# serializers.py
-
-from rest_framework import serializers
-from .models import User
 
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
