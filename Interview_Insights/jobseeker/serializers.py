@@ -74,7 +74,7 @@ class JobSeekerSerializer(serializers.ModelSerializer):
         fields = [
             'user', 'phone_number', 'date_of_birth', 'profile_photo', 'bio', 'interview_schedule','myapplications',
             'linkedin_url', 'portfolio_url', 'resume', 'current_job_title', 
-            'job_preferences', 'educations', 'skills', 'work_experience','interview_feedback','visible_applications'
+            'job_preferences', 'educations', 'skills', 'work_experience','interview_feedback',
         ]
     def get_interview_feedback(self, obj):
         feedbacks = InterviewFeedback.objects.filter(

@@ -8,6 +8,7 @@ django.setup()
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 import chat.routing
+from chat.middleware import JwtAuthMiddlewareStack
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),

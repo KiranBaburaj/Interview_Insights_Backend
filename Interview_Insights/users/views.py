@@ -376,6 +376,9 @@ class GoogleLogin(SocialLoginView):
             # Check if the employer has submitted company details
             company_details_submitted = False
             company_info = None
+            print(user.id)
+            role = 'jobseeker' if hasattr(user, 'jobseeker') else 'employer' if hasattr(user, 'employer') else 'recruiter' if hasattr(user, 'recruiter') else 'admin' if user.is_staff else 'unknown'
+            print(role)
             if role == 'employer':
                 try:
                     company = Company.objects.get(employer=user.employer)
@@ -383,7 +386,7 @@ class GoogleLogin(SocialLoginView):
                     company_info = {
                         'name': company.name,
                         'is_approved': company.is_approved,
-                        'details': company.details,
+                        
                     }
                 except Company.DoesNotExist:
                     company_details_submitted = False
@@ -397,8 +400,8 @@ class GoogleLogin(SocialLoginView):
                     'id': user.id,
                 },
                 'role': 'jobseeker' if hasattr(user, 'jobseeker') else 'employer' if hasattr(user, 'employer') else 'recruiter' if hasattr(user, 'recruiter') else 'admin' if user.is_staff else 'unknown',
-                'company_details_submitted': company_details_submitted,
-                'company_info': company_info,
+                'companyDetailsSubmitted': company_details_submitted,
+               
             }, status=status.HTTP_200_OK)
 
         except OAuth2Error as e:
