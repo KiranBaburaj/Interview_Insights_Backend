@@ -159,18 +159,31 @@ Real-time chat is implemented using **Django Channels** and **WebSockets**. The 
 
 The folder structure of the backend is organized as follows:
 
-```
 Interview_Insights_Backend/
-├── chat/                     # Chat app for handling WebSocket communication
-├── jobs/                     # Job listings and related models
-├── profiles/                 # User profiles and related views
-├── static/                   # Static files
-├── templates/                # HTML templates for authentication
-├── manage.py                 # Command-line utility for the project
-├── requirements.txt          # Project dependencies
-├── README.md                 # Project documentation
-└── interview_insights/       # Main Django application
-```
+├── Interview                  # Main interview app handling core functionalities
+│   ├── ...                    # Additional files related to interviews
+├── Interview_Insights         # Project directory for settings and configurations
+│   ├── ...                    # Additional settings files
+├── chat                       # Chat application for handling WebSocket communication
+│   ├── ...                    # Chat-related files and views
+├── customadmin                # Admin panel customizations
+│   ├── ...                    # Custom admin-related files
+├── employer                   # Employer-related functionalities
+│   ├── ...                    # Additional files for employer management
+├── jobs                       # Job listings and related models
+│   ├── ...                    # Job-related files
+├── jobseeker                  # Job seeker-related functionalities
+│   ├── ...                    # Additional files for job seeker management
+├── media                      # Media files
+│   ├── ...                    # Uploaded media files
+├── profile_photos             # Directory for storing applicant profile pictures
+│   ├── ...                    # Applicant pics list
+├── users                      # User management and authentication
+│   ├── ...                    # User-related files
+├── chat.log                   # Log file for chat-related events
+├── .gitignore                 # Git ignore file to ignore sensitive files
+└── manage.py                  # Command-line utility for the project
+
 
 ## Future Enhancements
 
