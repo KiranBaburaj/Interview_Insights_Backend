@@ -159,6 +159,7 @@ Real-time chat is implemented using **Django Channels** and **WebSockets**. The 
 
 The folder structure of the backend is organized as follows:
 
+```
 Interview_Insights_Backend/
 ├── Interview                  # Main interview app handling core functionalities
 │   ├── ...                    # Additional files related to interviews
@@ -183,7 +184,7 @@ Interview_Insights_Backend/
 ├── chat.log                   # Log file for chat-related events
 ├── .gitignore                 # Git ignore file to ignore sensitive files
 └── manage.py                  # Command-line utility for the project
-
+```
 
 ## Future Enhancements
 
