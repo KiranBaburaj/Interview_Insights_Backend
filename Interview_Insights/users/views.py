@@ -378,7 +378,7 @@ class GoogleLogin(SocialLoginView):
             company_info = None
             print(user.id)
             role = 'jobseeker' if hasattr(user, 'jobseeker') else 'employer' if hasattr(user, 'employer') else 'recruiter' if hasattr(user, 'recruiter') else 'admin' if user.is_staff else 'unknown'
-            print(role)
+            print
             if role == 'employer':
                 try:
                     company = Company.objects.get(employer=user.employer)
